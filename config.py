@@ -9,11 +9,11 @@ from routers.User import user
 
 from utils.Logs import ExceptionLog
 from utils.Excptions import DivExcep
-from models import BaseModel, TbUser
 from adapters.Sqlite import SQLiteAdapter
 from dantics.GlobalDantic import CoreModel
 from utils.Pool import StandardSQLiteDBConnectPool
 from templates.StandardSysTemplate import StandardSqliteConnTemplate
+from models import BaseModel, TbUser, TbRequirements, TbPiont,TbBug, TbWork
 
 # 提供初始化用的建表方法
 async def create_all_tables() -> StandardSQLiteDBConnectPool:

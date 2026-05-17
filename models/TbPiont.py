@@ -28,7 +28,7 @@ class Point(BaseModel):
         unique=False,
         index=True,
         nullable=False, # 不允许为空
-        comment="关联需求表ID"
+        comment="关联需求ID"
     ))
     title: str = cast(str, Column(
         String(128),
@@ -48,7 +48,7 @@ class Point(BaseModel):
         Integer,
         unique=False,
         index=True,
-        nualllable=False,
+        nullable=False,
         comment="功能点状态,1.规划中2.已锁定3.开发中4.开发完毕5.暂停中6.废弃"
     ))
     creator: str = cast(str, Column(

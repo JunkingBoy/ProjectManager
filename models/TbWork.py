@@ -28,14 +28,14 @@ class DevelopTasksPool(BaseModel):
         unique=False,
         index=True,
         nullable=False, # 不允许为空
-        comment="关联需求表ID"
+        comment="关联需求ID"
     ))
     point_id: str = cast(str, Column(
         String(128),
         unique=False,
         index=True,
         nullable=True, # 功能点ID可以为空
-        comment="关联功能点表ID,功能点唯一标识"
+        comment="关联功能点ID,功能点唯一标识"
     ))
     title: str = cast(str, Column(
         String(128),
@@ -55,7 +55,7 @@ class DevelopTasksPool(BaseModel):
         Integer,
         unique=False,
         index=True,
-        nualllable=False,
+        nullable=False,
         comment="研发任务状态,1.设计中2.开发中3.开发完毕4.测试中5.废弃"
     ))
     creator: str = cast(str, Column(
@@ -122,14 +122,14 @@ class QaTasksPool(BaseModel):
         unique=False,
         index=True,
         nullable=False, # 不允许为空
-        comment="关联需求表ID"
+        comment="关联需求ID"
     ))
     point_id: str = cast(str, Column(
         String(128),
         unique=False,
         index=True,
         nullable=True, # 功能点ID可以为空
-        comment="关联功能点表ID,功能点唯一标识"
+        comment="关联功能点ID,功能点唯一标识"
     ))
     title: str = cast(str, Column(
         String(128),
@@ -149,7 +149,7 @@ class QaTasksPool(BaseModel):
         Integer,
         unique=False,
         index=True,
-        nualllable=False,
+        nullable=False,
         comment="测试任务状态,1.设计中2.执行中3.Bug修复中4.测试通过5.无需测试"
     ))
     creator: str = cast(str, Column(

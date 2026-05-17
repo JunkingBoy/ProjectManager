@@ -68,3 +68,9 @@ class StandardQaTasksPoolStatusEnum(Enum):
     REPAIR = 3
     PASS = 4
     CANCEL = 5
+
+class StandardBugStatusEnum(Enum):
+    UNFIX = 0
+    FIX = 1
+    NONBUG = 2
+    CLOSE = 3

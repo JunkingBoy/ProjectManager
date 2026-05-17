@@ -5,72 +5,86 @@ from copy import deepcopy
 from datetime import datetime
 from sqlalchemy import Column, Integer, String, DateTime, Text
 
-from templates.StandardDBTemplate import TbRequirementsTemplate
+from templates.StandardDBTemplate import TbBugsPoolTemplate
 
-class Requirements(BaseModel):
-    __tablename__ = 'requirements'
+class TbBugsPool(BaseModel):
+    __tablename__ = 'bugs_pool'
 
     id: Column[int] = Column(
         Integer,
         primary_key=True,
         autoincrement=True,
-        comment="需求表自增ID,自增主键"
+        comment="Bug池表自增ID,自增主键"
     )
+    bug_id: str = cast(str, Column(
+        String(128),
+        unique=True,
+        index=True,
+        nullable=False,
+        comment="BugID,Bug唯一标识"
+    ))
     requirement_id: str = cast(str, Column(
         String(128),
-        unique=True, # 字段唯一
+        unique=False,
         index=True,
         nullable=False, # 不允许为空
-        comment="需求ID,需求唯一标识"
+        comment="关联需求ID"
     ))
-    number: str = cast(str, Column(
+    point_id: str = cast(str, Column(
         String(128),
-        unique=False,   # 允许重复需求
+        unique=False,
         index=True,
-        nullable=False, # 不允许为空
-        comment="需求编号"
+        nullable=False, # 功能点不能为空
+        comment="关联功能点ID,功能点唯一标识"
+    ))
+    test_task_id: str = cast(str, Column(
+        String(128),
+        unique=False,
+        index=True,
+        nullable=False, # 测试任务ID不能为空
+        comment="关联测试任务ID,功能点唯一标识"
     ))
     title: str = cast(str, Column(
         String(128),
         unique=False,
         index=True,
         nullable=False,
-        comment="需求标题"
+        comment="Bug务标题"
     ))
     description: str = cast(str, Column(
         Text,
         unique=False,
         index=False,
         nullable=True,
-        comment="需求描述"
-    ))
-    source: int = cast(int, Column(
-        Integer,
-        unique=False,
-        index=True,
-        nullable=False,
-        comment="需求来源,0:手动创建,1:第三方接入"
+        comment="Bug描述"
     ))
     status: int = cast(int, Column(
         Integer,
         unique=False,
         index=True,
         nullable=False,
-        comment="需求状态,0.待领取1.设计中2.开发中3.测试中4.已上线5.废弃"
+        comment="Bug状态,0.未修复1.已修复2.研发确认非Bug3.已关闭"
     ))
-    person: str = cast(str, Column(
+    creator: str = cast(str, Column(
         String(32),
         unique=False,
         index=True,
         nullable=True,
-        comment="需求处理人"
+        comment="Bug创建者"
     ))
-    relevant: str = cast(str, Column(
-        Text,
+    owner: str = cast(str, Column(
+        String(32),
         unique=False,
-        index=False,
+        index=True,
         nullable=True,
-        comment="需求相关人员,序列化为用户id数组存储"
+        comment="测试负责人"
+    ))
+    developer: str = cast(str, Column(
+        String(32),
+        unique=False,
+        index=True,
+        nullable=True,
+        comment="Bug关联开发"
     ))
     c_time: Column[datetime] = Column(
         DateTime(timezone=False),
@@ -87,15 +101,18 @@ class Requirements(BaseModel):
 
     def __init__(
         self,
-        data: TbRequirementsTemplate
+        data: TbBugsPoolTemplate
     ) -> None:
-        self.number: str = data.number
+        self.bug_id: str = data.bug_id
+        self.requirement_id: str = data.req_id
+        self.point_id: str = data.point_id
+        self.test_task_id: str = data.test_task_id
         self.title: str = data.title
         self.description: str = data.desc
-        self.source: int = data.source.value
         self.status: int = data.status.value
-        self.person: str = data.person
-        self.relevant: str = data.relevant
+        self.creator: str = data.creator
+        self.owner: str = data.owner
+        self.developer: str = data.developer
 
     @property
     def info(self) -> dict: return deepcopy(self.__dict__)

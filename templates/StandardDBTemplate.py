@@ -5,7 +5,8 @@ from enums.StandardBusEnum import (StandardReqSourceEnum,
 StandardReqStatusEnum,
 StandardPointStatusEnum,
 StandardDevTasksStatusEnum,
-StandardQaTasksPoolStatusEnum)
+StandardQaTasksPoolStatusEnum,
+StandardBugStatusEnum)
 
 '''
 所有表的操作模型
@@ -70,6 +71,22 @@ class TbQaTasksPoolTemplate:
     title: str
     desc: str
     status: StandardQaTasksPoolStatusEnum
+    creator: str
+    owner: str
+    developer: str
+
+    @property
+    def info(self) -> dict: return deepcopy(self.__dict__)
+
+@dataclass
+class TbBugsPoolTemplate:
+    bug_id: str
+    req_id: str
+    point_id: str
+    test_task_id: str
+    title: str
+    desc: str
+    status: StandardBugStatusEnum
     creator: str
     owner: str
     developer: str
