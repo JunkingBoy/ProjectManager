@@ -97,7 +97,7 @@ async def user_login(
                 # 发布签名
                 token_inner_info: StandardTokenInfoTemplate = StandardTokenInfoTemplate(
                     uid=alive_res[1],
-                    exp=int((datetime.now(tz=UTCTime) + timedelta(minutes=240)).timestamp() * 1000)
+                    exp=int((datetime.now(tz=UTCTime) + timedelta(minutes=240)).timestamp())
                 )
                 auth: str = await create_access_token(token_inner_info)
                 return (StandardBusinessEnum.SUCCESS.value[0], "登录成功", {"token": auth})
