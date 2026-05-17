@@ -1,7 +1,11 @@
 from copy import deepcopy
 from dataclasses import dataclass
 
-from enums.StandardBusEnum import StandardReqSourceEnum, StandardReqStatusEnum, StandardPointStatusEnum
+from enums.StandardBusEnum import (StandardReqSourceEnum,
+StandardReqStatusEnum,
+StandardPointStatusEnum,
+StandardDevTasksStatusEnum,
+StandardQaTasksPoolStatusEnum)
 
 '''
 所有表的操作模型
@@ -40,6 +44,35 @@ class TbPointTemplate:
     creator: str
     developer: str
     qa: str
+
+    @property
+    def info(self) -> dict: return deepcopy(self.__dict__)
+
+@dataclass
+class TbDevelopTasksPoolTmplate:
+    task_id: str
+    req_id: str
+    point_id: str
+    title: str
+    desc: str
+    status: StandardDevTasksStatusEnum
+    creator: str
+    owner: str
+
+    @property
+    def info(self) -> dict: return deepcopy(self.__dict__)
+
+@dataclass
+class TbQaTasksPoolTemplate:
+    task_id: str
+    req_id: str
+    point_id: str
+    title: str
+    desc: str
+    status: StandardQaTasksPoolStatusEnum
+    creator: str
+    owner: str
+    developer: str
 
     @property
     def info(self) -> dict: return deepcopy(self.__dict__)

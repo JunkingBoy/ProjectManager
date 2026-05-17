@@ -51,3 +51,20 @@ class StandardPointStatusEnum(Enum):
     TEST = 4
     REPAIR = 5
     FINISH = 6
+
+class StandardDevTasksStatusEnum(Enum):
+    '''
+    研发任务池状态机枚举
+    '''
+    DESIGN = 1
+    DEVELOP = 2
+    FINISH = 3
+    TEST = 4
+    CANCEL = 5
+
+class StandardQaTasksPoolStatusEnum(Enum):
+    DESIGN = 1
+    IMPLEMENT = 2
+    REPAIR = 3
+    PASS = 4
+    CANCEL = 5
