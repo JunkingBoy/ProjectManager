@@ -5,72 +5,72 @@ from copy import deepcopy
 from datetime import datetime
 from sqlalchemy import Column, Integer, String, DateTime, Text
 
-from templates.StandardDBTemplate import TbRequirementsTemplate
+from templates.StandardDBTemplate import TbPointTemplate
 
-class Requirements(BaseModel):
-    __tablename__ = 'requirements'
+class Point(BaseModel):
+    __tablename__ = 'feature_point'
 
     id: Column[int] = Column(
         Integer,
         primary_key=True,
         autoincrement=True,
-        comment="需求表自增ID,自增主键"
+        comment="功能点表自增ID,自增主键"
     )
+    point_id: str = cast(str, Column(
+        String(128),
+        unique=True,
+        index=True,
+        nullable=False,
+        comment="功能点ID,功能点唯一标识"
+    ))
     requirement_id: str = cast(str, Column(
         String(128),
-        unique=True, # 字段唯一
+        unique=False,
         index=True,
         nullable=False, # 不允许为空
-        comment="需求ID,需求唯一标识"
-    ))
-    number: str = cast(str, Column(
-        String(128),
-        unique=False,   # 允许重复需求
-        index=True,
-        nullable=False, # 不允许为空
-        comment="需求编号"
+        comment="关联需求表ID"
     ))
     title: str = cast(str, Column(
         String(128),
         unique=False,
         index=True,
         nullable=False,
-        comment="需求标题"
+        comment="功能点标题"
     ))
     description: str = cast(str, Column(
         Text,
         unique=False,
         index=False,
         nullable=True,
-        comment="需求描述"
-    ))
-    source: int = cast(int, Column(
-        Integer,
-        unique=False,
-        index=True,
-        nullable=False,
-        comment="需求来源,0:手动创建,1:第三方接入"
+        comment="功能点描述"
     ))
     status: int = cast(int, Column(
         Integer,
         unique=False,
         index=True,
         nualllable=False,
-        comment="需求状态,0.待领取1.设计中2.开发中3.测试中4.已上线5.废弃"
+        comment="功能点状态,1.规划中2.已锁定3.开发中4.开发完毕5.暂停中6.废弃"
     ))
-    person: str = cast(str, Column(
+    creator: str = cast(str, Column(
         String(32),
         unique=False,
         index=True,
         nullable=True,
-        comment="需求处理人"
+        comment="功能点创建者"
     ))
-    relevant: str = cast(str, Column(
+    developer: str = cast(str, Column(
         Text,
         unique=False,
         index=False,
         nullable=True,
-        comment="需求相关人员,序列化为用户id数组存储"
+        comment="功能点关联开发人员"
+    ))
+    qa: str = cast(str, Column(
+        Text,
+        unique=False,
+        index=False,
+        nullable=False,
+        comment="功能点关联测试人员"
     ))
     c_time: Column[datetime] = Column(
         DateTime(timezone=False),
@@ -87,15 +87,16 @@ class Requirements(BaseModel):
 
     def __init__(
         self,
-        data: TbRequirementsTemplate
+        data: TbPointTemplate
     ) -> None:
-        self.number: str = data.number
+        self.point_id: str = data.point_id
+        self.requirement_id: str = data.requirement_id
         self.title: str = data.title
         self.description: str = data.desc
-        self.source: int = data.source.value
         self.status: int = data.status.value
-        self.person: str = data.person
-        self.relevant: str = data.relevant
+        self.creator: str = data.creator
+        self.developer: str = data.developer
+        self.qa: str = data.qa
 
     @property
     def info(self) -> dict: return deepcopy(self.__dict__)

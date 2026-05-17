@@ -39,3 +39,15 @@ class StandardReqStatusEnum(Enum):
     DEVELOP = 3
     TEST = 4
     ONLINE = 5
+    CANCEL = 6
+
+class StandardPointStatusEnum(Enum):
+    '''
+    功能点状态机枚举
+    '''
+    PLAN = 1
+    LOCK = 2
+    DEVELOP = 3
+    TEST = 4
+    REPAIR = 5
+    FINISH = 6
