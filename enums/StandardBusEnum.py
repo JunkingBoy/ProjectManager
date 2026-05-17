@@ -22,3 +22,20 @@ class StandardBusinessEnum(Enum):
         for item in cls:
             if item.value[0] == code: return item.value[1]
         return "未知业务状态码"
+
+class StandardReqSourceEnum(Enum):
+    '''
+    需求来源枚举
+    '''
+    SELF = 1    # 自行创建
+    THIRD = 2   # 第三方接入
+
+class StandardReqStatusEnum(Enum):
+    '''
+    需求状态机枚举
+    '''
+    WAIT = 1
+    DESIGN = 2
+    DEVELOP = 3
+    TEST = 4
+    ONLINE = 5
