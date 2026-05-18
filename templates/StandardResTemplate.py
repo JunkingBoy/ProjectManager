@@ -11,3 +11,11 @@ class StandardResponse:
 
     @property
     def info(self) -> dict: return {k: deepcopy(v) for k, v in self.__dict__.items() if v is not None}
+
+@dataclass
+class StandardKeyResStruct:
+    index: int
+    key: str
+
+    @property
+    def info(self) -> dict: return self.__dict__.copy()

@@ -5,6 +5,7 @@ from contextlib import asynccontextmanager
 from sqlalchemy.ext.asyncio import AsyncEngine
 from fastapi.exceptions import RequestValidationError
 
+from routers.Key import key
 from routers.User import user
 
 from utils.Logs import ExceptionLog
@@ -36,8 +37,9 @@ async def create_all_tables() -> StandardSQLiteDBConnectPool:
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     e: ExceptionLog = ExceptionLog()
+    routers: list = [user, key]
+    for router in routers: app.include_router(router)
     try:
-        app.include_router(user)
         # 创建数据库连接池和初始化表
         db_pool: StandardSQLiteDBConnectPool = await create_all_tables()
         # 挂载到 FastAPI 实例上，方便全局访问

@@ -1,6 +1,9 @@
 import re
 import uuid
+import string
 import secrets
+
+from datetime import datetime
 
 def generate_aes_params() -> bytes: return secrets.token_bytes(16) # 返回16字节的初始化向量
 def generate_uid() -> str: return uuid.uuid4().hex
@@ -18,3 +21,16 @@ def is_valid_email(s: str) -> bool:
     # 匹配规则：字母数字及常见符号 + @ + 域名 + . + 至少2位的顶级域名
     pattern: str = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
     return bool(re.match(pattern, s))
+
+def filling_random_chars(index: int, s: str) -> str:
+    if not s: return ""
+    else:
+        all_chars: str = string.ascii_letters + string.digits + string.punctuation
+        # 随机数,6位
+        random_part: str = ''.join(secrets.choice(all_chars) for _ in range(6))
+        # 微妙,6位
+        micro_second_str: str = datetime.now().strftime("%f")
+        # UUID,4位
+        uuid_feature: str = uuid.uuid4().hex[-4:]
+        final_random_str: str = random_part + micro_second_str + uuid_feature
+        return s[:index] + final_random_str + s[index:]
