@@ -4,8 +4,6 @@ from pydantic import Field, field_validator
 
 from dantics.GlobalDantic import CoreModel
 
-from tools.Re import is_valid_password
-
 class UserRegister(CoreModel):
     phone: Annotated[str, Field(
         ...,

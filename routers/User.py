@@ -1,8 +1,9 @@
-from fastapi import APIRouter
 from fastapi.requests import Request
+from fastapi import APIRouter, Depends
 
 from fastapi.responses import JSONResponse
 
+from depends.Auth import authentication
 from enums.StandardBusEnum import StandardBusinessEnum
 from dantics.UserDantic import UserRegister, UserLogin
 from service.UserCenter import user_register, user_login
@@ -54,3 +55,9 @@ async def login(
         status_code=200,
         content=ret_res.info
     )
+
+@user.get("info")
+async def info(
+    r: Request,
+    success_auth: tuple = Depends(authentication)
+) -> JSONResponse: ...
