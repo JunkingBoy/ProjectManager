@@ -5,6 +5,8 @@ from pydantic import Field, field_validator, ConfigDict
 from dantics.GlobalDantic import CoreModel
 
 class UserRegister(CoreModel):
+    model_config = ConfigDict(from_attributes=True)
+
     phone: Annotated[str, Field(
         ...,
         min_length=36,
@@ -33,11 +35,6 @@ class UserRegister(CoreModel):
     @property
     def info(self) -> dict: return self.__dict__.copy()
 
-    @field_validator("password_confirm")
-    def vertry_password_match(cls, v: str, values: core_schema.ValidationInfo) -> str:
-        if "password" in values.data and v != values.data["password"]: raise ValueError("两次输入密码不一致")
-        else: return v
-
 class UserLogin(CoreModel):
     phone: Annotated[str, Field(
         ...,
@@ -56,6 +53,8 @@ class UserLogin(CoreModel):
     def info(self) -> dict: return self.__dict__.copy()
 
 class UserToken(CoreModel):
+    model_config = ConfigDict(from_attributes=True)
+
     uid: Annotated[str, Field(
         ...,
         description="用户ID加密值",
@@ -64,5 +63,3 @@ class UserToken(CoreModel):
         ...,
         description="用户过期时间戳"
     )]
-
-    model_config = ConfigDict(from_attributes=True)

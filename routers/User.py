@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends
 from fastapi.responses import JSONResponse
 
 from depends.Auth import authentication
+from depends.Auth import password_verify
 from enums.StandardBusEnum import StandardBusinessEnum
 from dantics.UserDantic import UserRegister, UserLogin
 from service.UserCenter import user_register, user_login
@@ -16,16 +17,24 @@ user: APIRouter = APIRouter(
 
 @user.post("/register")
 async def register(
-    data: UserRegister,
-    r: Request
+    r: Request,
+    success_data: tuple = Depends(password_verify)
 ) -> JSONResponse:
-    reg_res: tuple = await user_register(r, data)
-    ret_res: StandardResponse = StandardResponse(
-        code=reg_res[0],
-        msg=reg_res[1],
+    if success_data[0] != StandardBusinessEnum.SUCCESS.value[0]:
+        ret_res: StandardResponse = StandardResponse(
+        code=success_data[0],
+        msg=success_data[1],
         data=None,
         path=None
     )
+    else:
+        reg_res: tuple = await user_register(r, success_data[1])
+        ret_res: StandardResponse = StandardResponse(
+            code=reg_res[0],
+            msg=reg_res[1],
+            data=None,
+            path=None
+        )
     return JSONResponse(
         status_code=200,
         content=ret_res.info
@@ -33,8 +42,8 @@ async def register(
 
 @user.post("/login")
 async def login(
-    data: UserLogin,
-    r: Request
+    r: Request,
+    data: UserLogin
 ) -> JSONResponse:
     log_res: tuple = await user_login(r, data)
     if log_res[0] == StandardBusinessEnum.SUCCESS.value[0]:
