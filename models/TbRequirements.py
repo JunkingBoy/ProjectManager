@@ -70,7 +70,28 @@ class Requirements(BaseModel):
         unique=False,
         index=False,
         nullable=True,
-        comment="需求相关人员,序列化为用户id数组存储"
+        comment="需求负责技术经理"
+    ))
+    total: str = cast(str, Column(
+        String(128),
+        unique=False,
+        index=True,
+        nullable=True,
+        comment="需求总工时"
+    ))
+    develop_total: str = cast(str, Column(
+        String(128),
+        unique=False,
+        index=True,
+        nullable=True,
+        comment="需求开发工时"
+    ))
+    test_total: str = cast(str, Column(
+        String(128),
+        unique=False,
+        index=True,
+        nullable=True,
+        comment="需求测试工时"
     ))
     c_time: Column[datetime] = Column(
         DateTime(timezone=False),
@@ -87,7 +108,7 @@ class Requirements(BaseModel):
 
     def __init__(
         self,
-        data: TbRequirementsTemplate
+        data: TbRequirementsTemplate # 修改模型字段
     ) -> None:
         self.number: str = data.number
         self.title: str = data.title

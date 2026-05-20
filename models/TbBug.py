@@ -30,26 +30,19 @@ class TbBugsPool(BaseModel):
         nullable=False, # 不允许为空
         comment="关联需求ID"
     ))
-    point_id: str = cast(str, Column(
+    task_id: str = cast(str, Column(
         String(128),
         unique=False,
         index=True,
-        nullable=False, # 功能点不能为空
-        comment="关联功能点ID,功能点唯一标识"
-    ))
-    test_task_id: str = cast(str, Column(
-        String(128),
-        unique=False,
-        index=True,
-        nullable=False, # 测试任务ID不能为空
-        comment="关联测试任务ID,功能点唯一标识"
+        nullable=True, # 测试任务ID可以为空,为了区分综合测试Bug和业务测试Bug
+        comment="关联任务ID,任务唯一标识"
     ))
     title: str = cast(str, Column(
         String(128),
         unique=False,
         index=True,
         nullable=False,
-        comment="Bug务标题"
+        comment="Bug标题"
     ))
     description: str = cast(str, Column(
         Text,
@@ -57,6 +50,13 @@ class TbBugsPool(BaseModel):
         index=False,
         nullable=True,
         comment="Bug描述"
+    ))
+    expected_res: str = cast(str, Column(
+        Text,
+        unique=False,
+        index=False,
+        nullable=True,
+        comment="正确情况下预期结果"
     ))
     status: int = cast(int, Column(
         Integer,

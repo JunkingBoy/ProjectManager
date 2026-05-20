@@ -49,7 +49,7 @@ class User(BaseModel):
         unique=False,
         index=False,
         nullable=False,
-        comment="密码,使用Sha256加密,确定性哈希且不可逆"
+        comment="密码加密值"
     ))
     active: int = cast(int, Column(
         Integer,
