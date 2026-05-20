@@ -1,6 +1,8 @@
 from fastapi import Request
 
 from utils.Excptions import DivExcep
+from dantics.UserDantic import UserToken
+from service.UserCenter import user_check
 from utils.JWT import verify_access_token
 from enums.StandardBusEnum import StandardBusinessEnum
 
@@ -11,4 +13,6 @@ async def authentication(r: Request) -> tuple:
     _token: str = _headers[len("Bearer "):]
     _verify_res: tuple = await verify_access_token(_token)
     if StandardBusinessEnum.SUCCESS.value[0] != _verify_res[0]: return _verify_res[0], _verify_res[1]
-    return _verify_res
+    else:
+        _tmp_token_info: UserToken = UserToken(**_verify_res[1])
+        return await user_check(r, _tmp_token_info)

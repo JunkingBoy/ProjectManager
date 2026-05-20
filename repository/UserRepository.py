@@ -42,6 +42,37 @@ async def email_repeat_check(
             msg="邮箱数据查询失败"
         )
 
+async def user_repeat_normal(
+    session: AsyncSession,
+    encrypted_uid: str
+) -> bool:
+    e: ExceptionLog = ExceptionLog.get_instance()
+    decrypted_uid: str = await decrypt(encrypted_uid)
+    try:
+        user_sql: Select = select(User).where(
+            and_(
+                User.uid == decrypted_uid, # type: ignore
+                User.active == 0,                  # type: ignore
+                User.deleted == 0                  # type: ignore
+            )
+        )
+        sql_res: Result = await session.execute(user_sql)
+        user_info = sql_res.scalar_one_or_none()
+        if user_info: return True
+        else: return False
+    except SQLAlchemyError as sql_e:
+        e.error(f"用户确认异常{sql_e}", )
+        raise DivExcep(
+            code=StandardBusinessEnum.FAIL.value[0],
+            msg="用户确认异常"
+        )
+    except Exception as err:
+        e.error(f"用户确认失败{err}", )
+        raise DivExcep(
+            code=StandardBusinessEnum.FAIL.value[0],
+            msg="用户确认失败"
+        )
+
 async def user_alive(
     session: AsyncSession,
     encrypted_data: StandardUserRepositoryTemplate

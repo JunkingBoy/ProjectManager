@@ -60,4 +60,8 @@ async def login(
 async def info(
     r: Request,
     success_auth: tuple = Depends(authentication)
-) -> JSONResponse: ...
+) -> JSONResponse:
+    return JSONResponse(
+    status_code=200,
+    content="调用成功"
+)

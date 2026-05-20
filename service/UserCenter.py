@@ -9,13 +9,23 @@ from utils.Excptions import DivExcep
 from utils.Encry import decrypt, encrypt
 from utils.JWT import create_access_token
 from utils.Pool import StandardSQLiteDBConnectPool
-from dantics.UserDantic import UserRegister, UserLogin
 from enums.StandardBusEnum import StandardBusinessEnum
 from templates.StandardDBTemplate import TbUserTemplate
+from dantics.UserDantic import UserRegister, UserLogin, UserToken
 from templates.StandardSysTemplate import StandardTokenInfoTemplate
 from tools.Re import is_valid_email, is_valid_phone, is_valid_password
 from templates.StandardRepositoryTemplate import StandardUserRepositoryTemplate
-from repository.UserRepository import user_alive, user_create, email_repeat_check
+from repository.UserRepository import user_alive, user_create, email_repeat_check, user_repeat_normal
+
+async def user_check(
+    r: Request,
+    model: UserToken
+) -> tuple:
+    db_pool: StandardSQLiteDBConnectPool = r.app.state.db_pool
+    async with db_pool.get_session() as session:
+        user_repeat_res: bool = await user_repeat_normal(session, model.uid)
+        if not user_repeat_res: return StandardBusinessEnum.FAIL.value[0], "用户已注销"
+        else: return StandardBusinessEnum.SUCCESS.value[0], await decrypt(model.uid)
 
 async def user_register(
     r: Request,
@@ -96,7 +106,7 @@ async def user_login(
             else:
                 # 发布签名
                 token_inner_info: StandardTokenInfoTemplate = StandardTokenInfoTemplate(
-                    uid=alive_res[1],
+                    uid=await encrypt(alive_res[1]),
                     exp=int((datetime.now(tz=UTCTime) + timedelta(minutes=240)).timestamp())
                 )
                 auth: str = await create_access_token(token_inner_info)

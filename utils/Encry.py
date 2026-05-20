@@ -52,5 +52,5 @@ async def decrypt(data: str) -> str:
         padded_data: bytes = tmp_cipher.decrypt(encryed_data[AES.block_size:])
         return unpad(padded_data, AES.block_size).decode("utf-8")
     except Exception as err:
-        e.info(f"解密数据失败!")
+        e.info(f"解密数据失败!{err}")
         raise ValueError(f"解密数据失败,解密数据为{data}")
