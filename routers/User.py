@@ -5,7 +5,7 @@ from fastapi.responses import JSONResponse
 
 from depends.Auth import authentication
 from depends.Auth import password_verify
-from dantics.UserDantic import UserLogin
+from dantics.UserDantic import UserLogin, UserModify
 from enums.StandardBusEnum import StandardBusinessEnum
 from service.UserCenter import user_register, user_login
 from templates.StandardResTemplate import StandardResponse
@@ -63,6 +63,17 @@ async def login(
     return JSONResponse(
         status_code=200,
         content=ret_res.info
+    )
+
+@user.put("/mod")
+async def modify(
+    r: Request,
+    data: UserModify,
+    success_auth: tuple = Depends(authentication)
+) -> JSONResponse:
+    return JSONResponse(
+        status_code=200,
+        content=data.info
     )
 
 @user.get("/info")

@@ -1,6 +1,5 @@
 from typing import Annotated
-from pydantic_core import core_schema
-from pydantic import Field, field_validator, ConfigDict
+from pydantic import Field, ConfigDict
 
 from dantics.GlobalDantic import CoreModel
 
@@ -33,7 +32,7 @@ class UserRegister(CoreModel):
     )]
 
     @property
-    def info(self) -> dict: return self.__dict__.copy()
+    def info(self) -> dict: return self.model_dump()
 
 class UserLogin(CoreModel):
     phone: Annotated[str, Field(
@@ -50,7 +49,7 @@ class UserLogin(CoreModel):
     )]
 
     @property
-    def info(self) -> dict: return self.__dict__.copy()
+    def info(self) -> dict: return self.model_dump()
 
 class UserToken(CoreModel):
     model_config = ConfigDict(from_attributes=True)
@@ -59,7 +58,29 @@ class UserToken(CoreModel):
         ...,
         description="用户ID加密值",
     )]
-    exp: Annotated[str, Field(
+    exp: Annotated[int, Field(
         ...,
-        description="用户过期时间戳"
+        description="Token过期时间戳"
     )]
+
+    @property
+    def info(self) -> dict: return self.model_dump()
+
+class UserModify(CoreModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    username: Annotated[str, Field(
+        ...,
+        min_length=13,
+        max_length=13,
+        description="用户名明文"
+    )]
+    new_password: Annotated[str | None, Field(
+        None,
+        min_length=36,
+        max_length=60,
+        description="用户密码加密值(为空默认不修改密码)"
+    )]
+
+    @property
+    def info(self) -> dict: return self.model_dump()
