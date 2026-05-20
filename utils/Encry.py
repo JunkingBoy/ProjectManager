@@ -6,6 +6,8 @@ from Crypto.Util.Padding import pad, unpad
 
 from utils.Logs import ExceptionLog
 from tools.Files import get_env_val
+from enums.StandardBusEnum import StandardBusinessEnum
+from utils.Excptions import DivExcep
 from tools.Re import generate_aes_params
 
 '''
@@ -53,4 +55,7 @@ async def decrypt(data: str) -> str:
         return unpad(padded_data, AES.block_size).decode("utf-8")
     except Exception as err:
         e.info(f"解密数据失败!{err}")
-        raise ValueError(f"解密数据失败,解密数据为{data}")
+        raise DivExcep(
+            code=StandardBusinessEnum.FAIL.value[0],
+            msg="错误数据"
+        )
