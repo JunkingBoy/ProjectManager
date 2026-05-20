@@ -12,7 +12,7 @@ key: APIRouter = APIRouter(
     tags=["key"],
 )
 
-@key.get("/key")
+@key.get("/public")
 async def get_key(
     r: Request
 ) -> JSONResponse:
