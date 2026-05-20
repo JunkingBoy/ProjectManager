@@ -5,8 +5,8 @@ from fastapi.responses import JSONResponse
 
 from depends.Auth import authentication
 from depends.Auth import password_verify
+from dantics.UserDantic import UserLogin
 from enums.StandardBusEnum import StandardBusinessEnum
-from dantics.UserDantic import UserRegister, UserLogin
 from service.UserCenter import user_register, user_login
 from templates.StandardResTemplate import StandardResponse
 
