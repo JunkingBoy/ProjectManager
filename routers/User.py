@@ -56,7 +56,7 @@ async def login(
         content=ret_res.info
     )
 
-@user.get("info")
+@user.get("/info")
 async def info(
     r: Request,
     success_auth: tuple = Depends(authentication)

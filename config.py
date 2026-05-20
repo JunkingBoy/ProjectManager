@@ -14,7 +14,7 @@ from adapters.Sqlite import SQLiteAdapter
 from dantics.GlobalDantic import CoreModel
 from utils.Pool import StandardSQLiteDBConnectPool
 from templates.StandardSysTemplate import StandardSqliteConnTemplate
-from models import BaseModel, TbUser, TbRequirements, TbPiont,TbBug, TbWork
+from models import BaseModel, TbPoint, TbUser, TbRequirements, TbBug, TbWork
 
 # 提供初始化用的建表方法
 async def create_all_tables() -> StandardSQLiteDBConnectPool:
