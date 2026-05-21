@@ -1,6 +1,6 @@
-from pydantic import BaseModel
 from fastapi.requests import Request
 from fastapi.responses import JSONResponse
+from pydantic import BaseModel, ValidationError
 from fastapi.exceptions import RequestValidationError, ResponseValidationError
 
 from utils.Logs import ExceptionLog
@@ -14,14 +14,14 @@ class CoreModel(BaseModel):
     async def Global_Model_Error_Catch(
         cls,
         r: Request,
-        e: RequestValidationError | ResponseValidationError
+        e: RequestValidationError | ResponseValidationError | ValidationError
     ) -> JSONResponse:
         l: ExceptionLog = ExceptionLog.get_instance()
         res_errors: list = []
         log_errors: list = []
         for error in e.errors():
             res_errors.append({
-                "param": error["loc"][1],
+                "param": error["loc"][0] if isinstance(e, ValidationError) else error["loc"][1],
                 "msg": StandardGlobalErrEnum.get_msg_by_type(error["type"]) if StandardGlobalErrEnum.get_msg_by_type(error["type"]) else error["msg"],
             })
             log_errors.append({
@@ -57,4 +57,3 @@ class CoreModel(BaseModel):
             path=r.url.path
         ).info
     )
-
