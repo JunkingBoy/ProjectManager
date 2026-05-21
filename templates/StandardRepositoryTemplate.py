@@ -9,3 +9,12 @@ class StandardUserRepositoryTemplate:
 
     @property
     def info(self) -> dict: return self.__dict__.copy()
+
+@dataclass
+class StandardUserModRepositoryTemplate:
+    uid: str | None
+    username: str | None
+    password: str | None
+
+    @property
+    def info(self) -> dict: return self.__dict__.copy()

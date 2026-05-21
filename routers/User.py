@@ -7,8 +7,8 @@ from depends.Auth import authentication
 from depends.Auth import password_verify
 from dantics.UserDantic import UserLogin, UserModify
 from enums.StandardBusEnum import StandardBusinessEnum
-from service.UserCenter import user_register, user_login
 from templates.StandardResTemplate import StandardResponse
+from service.UserCenter import user_register, user_login, user_modify
 
 user: APIRouter = APIRouter(
     prefix="/user",
@@ -71,9 +71,24 @@ async def modify(
     data: UserModify,
     success_auth: tuple = Depends(authentication)
 ) -> JSONResponse:
+    if success_auth[0] != StandardBusinessEnum.SUCCESS.value[0]:
+        ret_res: StandardResponse = StandardResponse(
+            code=success_auth[0],
+            msg=success_auth[1],
+            data=None,
+            path=None
+        )
+    else:
+        mod_res: tuple = await user_modify(r, data, success_auth[1])
+        ret_res: StandardResponse = StandardResponse(
+            code=mod_res[0],
+            msg=mod_res[1],
+            data=None,
+            path=None
+        )
     return JSONResponse(
         status_code=200,
-        content=data.info
+        content=ret_res.info
     )
 
 @user.get("/info")
