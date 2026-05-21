@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi import Request
+from pydantic import ValidationError
 from fastapi.responses import JSONResponse
 from contextlib import asynccontextmanager
 from sqlalchemy.ext.asyncio import AsyncEngine
@@ -83,3 +84,7 @@ async def validation_exception_handler(r: Request, e: RequestValidationError) ->
 # 解析异常全局处理
 @ProjectServer.exception_handler(DivExcep)
 async def div_exception_handler(r: Request, e: DivExcep) -> JSONResponse: return await CoreModel.Global_Bussiness_Error_Catch(r, e)
+
+# Pydantic异常全局处理
+@ProjectServer.exception_handler(ValidationError)
+async def pydantic_exception_handler(r: Request, e: ValidationError) -> JSONResponse: return await CoreModel.Global_Model_Error_Catch(r, e)
