@@ -6,3 +6,25 @@ from sqlalchemy.ext.declarative import declarative_base
 BaseModel: Any = declarative_base()
 # 设置建表时候的默认时区时间
 UTCTime: Any = timezone.utc
+
+from models.TbUser import User
+from models.TbRequirement import Requirement
+from models.TbTaskPool import TaskPool
+from models.TbDevelopTask import DevelopTask
+from models.TbQaTask import QaTask
+from models.TbBug import BugPool
+from models.TbTaskLog import TaskLog
+from models.TbReqFeatureLog import ReqFeatureLog
+
+__all__ = [
+    "BaseModel",
+    "UTCTime",
+    "User",
+    "Requirement",
+    "TaskPool",
+    "DevelopTask",
+    "QaTask",
+    "BugPool",
+    "TaskLog",
+    "ReqFeatureLog",
+]

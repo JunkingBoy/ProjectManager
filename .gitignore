@@ -13,3 +13,5 @@ db/
 .env.dev
 README.md
 test.py
+.idea
+zl/*

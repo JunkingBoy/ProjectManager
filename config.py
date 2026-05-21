@@ -6,6 +6,17 @@ from sqlalchemy.ext.asyncio import AsyncEngine
 from fastapi.exceptions import RequestValidationError
 
 from routers.User import user
+from routers.Requirement import requirement
+from routers.TaskPool import task_pool
+from routers.DevelopTask import develop_task
+from routers.QaTask import qa_task
+from routers.Bug import bug
+from routers.Dashboard import dashboard
+from routers.TaskPool import task_pool
+from routers.DevelopTask import develop_task
+from routers.QaTask import qa_task
+from routers.Bug import bug
+from routers.Dashboard import dashboard
 
 from utils.Logs import ExceptionLog
 from utils.Excptions import DivExcep
@@ -38,6 +49,17 @@ async def lifespan(app: FastAPI):
     e: ExceptionLog = ExceptionLog()
     try:
         app.include_router(user)
+        app.include_router(requirement)
+        app.include_router(task_pool)
+        app.include_router(develop_task)
+        app.include_router(qa_task)
+        app.include_router(bug)
+        app.include_router(dashboard)
+        app.include_router(task_pool)
+        app.include_router(develop_task)
+        app.include_router(qa_task)
+        app.include_router(bug)
+        app.include_router(dashboard)
         # 创建数据库连接池和初始化表
         db_pool: StandardSQLiteDBConnectPool = await create_all_tables()
         # 挂载到 FastAPI 实例上，方便全局访问

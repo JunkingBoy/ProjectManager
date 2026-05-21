@@ -78,6 +78,8 @@ def load_service_module():
     repository_module.user_alive = lambda session, data: asyncio.sleep(0, result=(StandardBusinessEnum.UNREGISTERED.value[0], "用户未注册"))
     repository_module.user_create = lambda session, template: asyncio.sleep(0, result=StandardBusinessEnum.SUCCESS.value[0])
     repository_module.email_repeat_check = lambda session, email: asyncio.sleep(0, result=False)
+    repository_module.user_list = lambda session: asyncio.sleep(0, result=[])
+    repository_module.user_get_by_uids = lambda session, uids: asyncio.sleep(0, result=[])
 
     jwt_module = types.ModuleType("utils.JWT")
     jwt_module.create_access_token = lambda token_info: asyncio.sleep(0, result="token")

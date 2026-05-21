@@ -15,7 +15,7 @@ from templates.StandardDBTemplate import TbUserTemplate
 from templates.StandardSysTemplate import StandardTokenInfoTemplate
 from tools.Re import is_valid_email, is_valid_phone, is_valid_password
 from templates.StandardRepositoryTemplate import StandardUserRepositoryTemplate
-from repository.UserRepository import user_alive, user_create, email_repeat_check
+from repository.UserRepository import user_alive, user_create, email_repeat_check, user_list, user_get_by_uids
 
 async def user_register(
     r: Request,
@@ -101,3 +101,42 @@ async def user_login(
                 )
                 auth: str = await create_access_token(token_inner_info)
                 return (StandardBusinessEnum.SUCCESS.value[0], "登录成功", {"token": auth})
+
+
+async def user_list_service(
+    r: Request
+) -> list:
+    db_pool: StandardSQLiteDBConnectPool = r.app.state.db_pool
+    async with db_pool.get_session() as session:
+        users = await user_list(session)
+        return [u.info for u in users]
+
+
+async def user_relevant_service(
+    r: Request,
+    requirement_id: str
+) -> list:
+    from repository.RequirementRepository import requirement_get
+    db_pool: StandardSQLiteDBConnectPool = r.app.state.db_pool
+    async with db_pool.get_session() as session:
+        req = await requirement_get(session, requirement_id)
+        if not req:
+            raise DivExcep(
+                code=StandardBusinessEnum.UNKNOWN.value[0],
+                msg="需求不存在"
+            )
+        uids = []
+        if req.person:
+            uids.append(req.person)
+        if req.relevant:
+            import json
+            try:
+                relevant_uids = json.loads(req.relevant)
+                if isinstance(relevant_uids, list):
+                    uids.extend(relevant_uids)
+            except (json.JSONDecodeError, TypeError):
+                pass
+        if not uids:
+            return []
+        users = await user_get_by_uids(session, list(set(uids)))
+        return [u.info for u in users]

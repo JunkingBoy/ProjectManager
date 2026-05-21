@@ -46,6 +46,11 @@ def load_router_module():
                 return func
             return decorator
 
+        def get(self, _path):
+            def decorator(func):
+                return func
+            return decorator
+
     fastapi_module.APIRouter = FakeAPIRouter
 
     requests_module = types.ModuleType("fastapi.requests")
@@ -61,6 +66,8 @@ def load_router_module():
     service_module = types.ModuleType("service.UserCenter")
     service_module.user_register = lambda request, data: None
     service_module.user_login = lambda request, data: None
+    service_module.user_list_service = lambda request: None
+    service_module.user_relevant_service = lambda request, req_id: None
 
     template_module = types.ModuleType("templates.StandardResTemplate")
     template_module.StandardResponse = FakeStandardResponse

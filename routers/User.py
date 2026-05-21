@@ -5,7 +5,7 @@ from fastapi.responses import JSONResponse
 
 from enums.StandardBusEnum import StandardBusinessEnum
 from dantics.UserDantic import UserRegister, UserLogin
-from service.UserCenter import user_register, user_login
+from service.UserCenter import user_register, user_login, user_list_service, user_relevant_service
 from templates.StandardResTemplate import StandardResponse
 
 user: APIRouter = APIRouter(
@@ -29,6 +29,35 @@ async def register(
         status_code=200,
         content=ret_res.info
     )
+
+
+@user.get("/list")
+async def get_user_list(
+    r: Request
+) -> JSONResponse:
+    data = await user_list_service(r)
+    ret_res: StandardResponse = StandardResponse(
+        code=StandardBusinessEnum.SUCCESS.value[0],
+        msg="获取成功",
+        data=data,
+        path=None,
+    )
+    return JSONResponse(status_code=200, content=ret_res.info)
+
+
+@user.get("/relevant/{requirement_id}")
+async def get_relevant_users(
+    requirement_id: str,
+    r: Request
+) -> JSONResponse:
+    data = await user_relevant_service(r, requirement_id)
+    ret_res: StandardResponse = StandardResponse(
+        code=StandardBusinessEnum.SUCCESS.value[0],
+        msg="获取成功",
+        data=data,
+        path=None,
+    )
+    return JSONResponse(status_code=200, content=ret_res.info)
 
 @user.post("/login")
 async def login(

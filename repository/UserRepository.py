@@ -1,3 +1,4 @@
+from typing import List
 from sqlalchemy.sql import Select
 from sqlalchemy import select, and_
 from sqlalchemy.engine import Result
@@ -102,4 +103,60 @@ async def user_create(
         raise DivExcep(
             code=StandardBusinessEnum.FAIL.value[0],
             msg="用户创建失败"
+        )
+
+
+async def user_list(
+    session: AsyncSession
+) -> List[User]:
+    e: ExceptionLog = ExceptionLog.get_instance()
+    try:
+        user_sql: Select = select(User).where(
+            and_(
+                User.active == 0,  # type: ignore
+                User.deleted == 0  # type: ignore
+            )
+        )
+        sql_res: Result = await session.execute(user_sql)
+        return list(sql_res.scalars().all())
+    except SQLAlchemyError as sql_e:
+        e.error(f"用户列表查询异常{sql_e}")
+        raise DivExcep(
+            code=StandardBusinessEnum.FAIL.value[0],
+            msg="用户列表查询异常"
+        )
+    except Exception as err:
+        e.error(f"用户列表查询失败{err}")
+        raise DivExcep(
+            code=StandardBusinessEnum.FAIL.value[0],
+            msg="用户列表查询失败"
+        )
+
+
+async def user_get_by_uids(
+    session: AsyncSession,
+    uids: List[str]
+) -> List[User]:
+    e: ExceptionLog = ExceptionLog.get_instance()
+    try:
+        user_sql: Select = select(User).where(
+            and_(
+                User.uid.in_(uids),  # type: ignore
+                User.active == 0,    # type: ignore
+                User.deleted == 0    # type: ignore
+            )
+        )
+        sql_res: Result = await session.execute(user_sql)
+        return list(sql_res.scalars().all())
+    except SQLAlchemyError as sql_e:
+        e.error(f"用户批量查询异常{sql_e}")
+        raise DivExcep(
+            code=StandardBusinessEnum.FAIL.value[0],
+            msg="用户批量查询异常"
+        )
+    except Exception as err:
+        e.error(f"用户批量查询失败{err}")
+        raise DivExcep(
+            code=StandardBusinessEnum.FAIL.value[0],
+            msg="用户批量查询失败"
         )
