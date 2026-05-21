@@ -1,6 +1,7 @@
 from typing import Annotated
-from pydantic import Field, ConfigDict
+from pydantic import Field, field_validator, ConfigDict
 
+from tools.Re import is_valid_username
 from dantics.GlobalDantic import CoreModel
 
 class UserRegister(CoreModel):
@@ -71,7 +72,7 @@ class UserModify(CoreModel):
 
     username: Annotated[str, Field(
         ...,
-        min_length=13,
+        min_length=2,
         max_length=13,
         description="用户名明文"
     )]
@@ -84,3 +85,8 @@ class UserModify(CoreModel):
 
     @property
     def info(self) -> dict: return self.model_dump()
+
+    @field_validator("username")
+    def vertry_username_match(cls, v: str) -> str:
+        if not is_valid_username(v): raise ValueError("非法用户名")
+        else: return v

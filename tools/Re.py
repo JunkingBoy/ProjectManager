@@ -22,6 +22,11 @@ def is_valid_email(s: str) -> bool:
     pattern: str = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
     return bool(re.match(pattern, s))
 
+def is_valid_username(s: str) -> bool:
+    # 匹配规则：字母、数字、字母+数字
+    pattern: str = r"^[\u4e00-\u9fa5a-zA-Z0-9]+$"
+    return bool(re.match(pattern, s))
+
 def filling_random_chars(index: int, s: str) -> str:
     if not s: return ""
     else:
