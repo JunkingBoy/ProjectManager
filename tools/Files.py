@@ -80,9 +80,17 @@ else:
     def _unlock(f: IO[Any]) -> None: fcntl.flock(f.fileno(), fcntl.LOCK_UN) # type: ignore
 
 class FileLock:
-    def __init__(self, file: IO[Any]) -> None: self._file: IO[Any] = file
-    def __enter__(self) -> None: _lock(self._file)
-    def __exit__(self, *args: Any) -> None: _unlock(self._file)
+    def __init__(self, file: IO[Any]) -> None:
+        self._file: IO[Any] = file
+        self._pos: int = 0
+
+    def __enter__(self) -> None:
+        self._pos = self._file.tell()
+        _lock(self._file)
+
+    def __exit__(self, *args: Any) -> None:
+        self._file.seek(self._pos)
+        _unlock(self._file)
 
 def atomic_write(file_path: str, content: dict) -> None:
     """将 dict 以 JSON 格式原子写入文件"""
