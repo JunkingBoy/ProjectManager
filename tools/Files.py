@@ -1,7 +1,5 @@
 import os
 import json
-import fcntl
-import msvcrt
 import platform
 import tempfile
 
@@ -73,9 +71,11 @@ def create_file(
     except Exception: raise Exception('创建文件失败')
 
 if platform.system() == "Windows":
+    import msvcrt
     def _lock(f: IO[Any]) -> None: msvcrt.locking(f.fileno(), msvcrt.LK_LOCK, 1)
     def _unlock(f: IO[Any]) -> None: msvcrt.locking(f.fileno(), msvcrt.LK_UNLCK, 1)
 else:
+    import fcntl
     def _lock(f: IO[Any]) -> None: fcntl.flock(f.fileno(), fcntl.LOCK_EX) # type: ignore
     def _unlock(f: IO[Any]) -> None: fcntl.flock(f.fileno(), fcntl.LOCK_UN) # type: ignore
 
