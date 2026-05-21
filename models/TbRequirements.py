@@ -56,7 +56,35 @@ class Requirements(BaseModel):
         unique=False,
         index=True,
         nullable=False,
-        comment="需求状态,0.待领取1.设计中2.开发中3.测试中4.已上线5.废弃"
+        comment="需求状态,0.进行中1.综合测试2.业务测试3.待发布4.已发布"
+    ))
+    priority: int = cast(int, Column(
+        Integer,
+        unique=False,
+        index=True,
+        nullable=False,
+        comment="需求优先级,0.高1.中2.低"
+    ))
+    system: str = cast(str, Column(
+        String(32),
+        unique=False,
+        index=True,
+        nullable=False,
+        comment="需求所属系统:枚举值"
+    ))
+    project: str = cast(str, Column(
+        String(32),
+        unique=False,
+        index=True,
+        nullable=False,
+        comment="需求所属项目:枚举值"
+    ))
+    project_type: str = cast(str, Column(
+        String(32),
+        unique=False,
+        index=True,
+        nullable=False,
+        comment="需求所属项目类型:枚举值"
     ))
     person: str = cast(str, Column(
         String(32),
@@ -86,6 +114,13 @@ class Requirements(BaseModel):
         nullable=True,
         comment="需求开发工时"
     ))
+    develop_price: str = cast(str, Column(
+        String(128),
+        unique=False,
+        index=True,
+        nullable=True,
+        comment="需求开发单价"
+    ))
     test_total: str = cast(str, Column(
         String(128),
         unique=False,
@@ -93,6 +128,33 @@ class Requirements(BaseModel):
         nullable=True,
         comment="需求测试工时"
     ))
+    test_price: str = cast(str, Column(
+        String(128),
+        unique=False,
+        index=True,
+        nullable=True,
+        comment="需求测试单价"
+    ))
+    business_test_total: str = cast(str, Column(
+        String(128),
+        unique=False,
+        index=True,
+        nullable=True,
+        comment="需求业务测试工时"
+    ))
+    business_test_price: str = cast(str, Column(
+        String(128),
+        unique=False,
+        index=True,
+        nullable=True,
+        comment="需求业务测试单价"
+    ))
+    release_time: Column[datetime] = Column(
+        DateTime(timezone=False),
+        default=None,
+        nullable=True,
+        comment="需求发布时间"
+    )
     c_time: Column[datetime] = Column(
         DateTime(timezone=False),
         default=lambda: datetime.now(tz=UTCTime),

@@ -35,7 +35,7 @@ class TasksPool(BaseModel):
         unique=False,
         index=True,
         nullable=True, # 功能点ID可以为空
-        comment="任务关联开发终端"
+        comment="任务关联开发终端,0后台1安卓2IOS3鸿蒙4小程序5H5"
     ))
     description: str = cast(str, Column(
         Text,
