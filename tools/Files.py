@@ -1,9 +1,14 @@
 import os
+import json
+import fcntl
+import msvcrt
+import platform
+import tempfile
 
 from pathlib import Path
-from typing import Optional
 from datetime import datetime
 from dotenv import load_dotenv
+from typing import Any, Optional, IO
 
 '''
 文件操作相关的工具方法统一存放
@@ -66,3 +71,27 @@ def create_file(
         if not tar_file.exists(): tar_file.touch()
         return tar_file.as_posix()
     except Exception: raise Exception('创建文件失败')
+
+if platform.system() == "Windows":
+    def _lock(f: IO[Any]) -> None: msvcrt.locking(f.fileno(), msvcrt.LK_LOCK, 1)
+    def _unlock(f: IO[Any]) -> None: msvcrt.locking(f.fileno(), msvcrt.LK_UNLCK, 1)
+else:
+    def _lock(f: IO[Any]) -> None: fcntl.flock(f.fileno(), fcntl.LOCK_EX) # type: ignore
+    def _unlock(f: IO[Any]) -> None: fcntl.flock(f.fileno(), fcntl.LOCK_UN) # type: ignore
+
+class FileLock:
+    def __init__(self, file: IO[Any]) -> None: self._file: IO[Any] = file
+    def __enter__(self) -> None: _lock(self._file)
+    def __exit__(self, *args: Any) -> None: _unlock(self._file)
+
+def atomic_write(file_path: str, content: dict) -> None:
+    """将 dict 以 JSON 格式原子写入文件"""
+    file: Path = Path(file_path)
+    fd, tmp_path = tempfile.mkstemp(dir=file.parent, suffix=".tmp")
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as f: json.dump(content, f, ensure_ascii=False, indent=4)
+        os.replace(tmp_path, file_path)
+    except Exception:
+        try: os.unlink(tmp_path)
+        except OSError: pass
+        raise
