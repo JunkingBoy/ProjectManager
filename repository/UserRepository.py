@@ -1,3 +1,4 @@
+from typing import Sequence
 from sqlalchemy.sql import Select, Update
 from sqlalchemy.engine import Result
 from sqlalchemy.exc import SQLAlchemyError
@@ -193,4 +194,32 @@ async def user_update(
         raise DivExcep(
             code=StandardBusinessEnum.FAIL.value[0],
             msg="用户数据修改失败"
+        )
+
+async def user_all(
+    session: AsyncSession
+) -> list:
+    e: ExceptionLog = ExceptionLog.get_instance()
+    try:
+        user_sql: Select = select(User).where(
+            and_(
+                User.active == 0,   # type: ignore
+                User.deleted == 0,  # type: ignore
+            )
+        )
+        sql_res: Result = await session.execute(user_sql)
+        user_list: Sequence = sql_res.scalars().all()
+        result: list = [{"uid": user.uid, "username": user.username} for user in user_list]
+        return result
+    except SQLAlchemyError as sql_e:
+        e.error(f"用户列表查询异常{sql_e}")
+        raise DivExcep(
+            code=StandardBusinessEnum.FAIL.value[0],
+            msg="用户列表查询异常"
+        )
+    except Exception as err:
+        e.error(f"用户列表查询失败{err}")
+        raise DivExcep(
+            code=StandardBusinessEnum.FAIL.value[0],
+            msg="用户列表查询失败"
         )

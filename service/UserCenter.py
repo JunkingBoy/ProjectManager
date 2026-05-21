@@ -15,7 +15,7 @@ from templates.StandardSysTemplate import StandardTokenInfoTemplate
 from tools.Re import is_valid_email, is_valid_phone, is_valid_password
 from dantics.UserDantic import UserRegister, UserLogin, UserToken, UserModify
 from templates.StandardRepositoryTemplate import StandardUserRepositoryTemplate, StandardUserModRepositoryTemplate
-from repository.UserRepository import user_alive, user_create, email_repeat_check, user_repeat_normal, user_update, user_uid
+from repository.UserRepository import user_alive, user_create, email_repeat_check, user_repeat_normal, user_update, user_uid, user_all
 
 async def user_check(
     r: Request,
@@ -112,6 +112,18 @@ async def user_login(
                 )
                 auth: str = await create_access_token(token_inner_info)
                 return (StandardBusinessEnum.SUCCESS.value[0], "登录成功", {"token": auth})
+
+async def user_list(
+    r: Request
+) -> tuple:
+    u_platform: Optional[str] = r.headers.get("sec-ch-ua-platform")
+    if not u_platform: return (StandardBusinessEnum.FAIL.value[0], "请求头校验失败")
+    else:
+        db_pool: StandardSQLiteDBConnectPool = r.app.state.db_pool
+        async with db_pool.get_session() as session:
+            raw_list: list = await user_all(session)
+            result: list = [{"uid": await encrypt(item["uid"]), "username": item["username"]} for item in raw_list]
+            return (StandardBusinessEnum.SUCCESS.value[0], "查询成功", result)
 
 async def user_modify(
     r: Request,

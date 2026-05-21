@@ -8,7 +8,7 @@ from depends.Auth import password_verify
 from dantics.UserDantic import UserLogin, UserModify
 from enums.StandardBusEnum import StandardBusinessEnum
 from templates.StandardResTemplate import StandardResponse
-from service.UserCenter import user_register, user_login, user_modify
+from service.UserCenter import user_register, user_login, user_modify, user_list
 
 user: APIRouter = APIRouter(
     prefix="/user",
@@ -91,12 +91,35 @@ async def modify(
         content=ret_res.info
     )
 
-@user.get("/info")
+@user.get("/list")
 async def info(
     r: Request,
     success_auth: tuple = Depends(authentication)
 ) -> JSONResponse:
+    if success_auth[0] != StandardBusinessEnum.SUCCESS.value[0]:
+        ret_res: StandardResponse = StandardResponse(
+            code=success_auth[0],
+            msg=success_auth[1],
+            data=None,
+            path=None
+        )
+    else:
+        list_res: tuple = await user_list(r)
+        if list_res[0] == StandardBusinessEnum.SUCCESS.value[0]:
+            ret_res: StandardResponse = StandardResponse(
+                code=list_res[0],
+                msg=list_res[1],
+                data=list_res[2],
+                path=None
+            )
+        else:
+            ret_res: StandardResponse = StandardResponse(
+                code=list_res[0],
+                msg=list_res[1],
+                data=None,
+                path=None
+            )
     return JSONResponse(
-    status_code=200,
-    content="调用成功"
-)
+        status_code=200,
+        content=ret_res.info
+    )
