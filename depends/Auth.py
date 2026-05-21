@@ -20,4 +20,5 @@ async def authentication(r: Request) -> tuple:
     if StandardBusinessEnum.SUCCESS.value[0] != _verify_res[0]: return _verify_res[0], _verify_res[1]
     else:
         _tmp_token_info: UserToken = UserToken(**_verify_res[1])
-        return await user_check(r, _tmp_token_info)
+        if await user_check(r, _tmp_token_info) != StandardBusinessEnum.SUCCESS: return StandardBusinessEnum.FAIL.value[0], "用户已注销"
+        return StandardBusinessEnum.SUCCESS.value[0], await decrypt(_tmp_token_info.uid)

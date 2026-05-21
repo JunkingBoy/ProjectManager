@@ -1,7 +1,7 @@
-from sqlalchemy.sql import Select
-from sqlalchemy import select, and_
+from sqlalchemy.sql import Select, Update
 from sqlalchemy.engine import Result
 from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy import select, and_, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from models.TbUser import User
@@ -10,7 +10,7 @@ from utils.Logs import ExceptionLog
 from utils.Excptions import DivExcep
 from enums.StandardBusEnum import StandardBusinessEnum
 from templates.StandardDBTemplate import TbUserTemplate
-from templates.StandardRepositoryTemplate import StandardUserRepositoryTemplate
+from templates.StandardRepositoryTemplate import StandardUserRepositoryTemplate, StandardUserModRepositoryTemplate
 
 async def email_repeat_check(
     session: AsyncSession,
@@ -133,4 +133,35 @@ async def user_create(
         raise DivExcep(
             code=StandardBusinessEnum.FAIL.value[0],
             msg="用户创建失败"
+        )
+
+async def user_update(
+    session: AsyncSession,
+    user_mod_template: StandardUserModRepositoryTemplate
+) -> StandardBusinessEnum:
+    e: ExceptionLog = ExceptionLog.get_instance()
+    try:
+        # uid是解密值
+        update_data: dict = {"username": user_mod_template.username}
+        if user_mod_template.password is not None: update_data["password"] = user_mod_template.password
+        stmt: Update = update(User).where(
+            User.uid == user_mod_template.uid # type: ignore
+        ).values(**update_data).execution_options(synchronize_session="fetch")
+        res_rows: Result = await session.execute(stmt)
+        if res_rows.rowcount != 1: return StandardBusinessEnum.FAIL # type: ignore
+        await session.commit()
+        return StandardBusinessEnum.SUCCESS
+    except SQLAlchemyError as sql_e:
+        e.error(f"用户数据修改异常{sql_e}", )
+        await session.rollback()
+        raise DivExcep(
+            code=StandardBusinessEnum.FAIL.value[0],
+            msg="用户数据修改异常"
+        )
+    except Exception as err:
+        e.error(f"用户数据修改失败{err}", )
+        await session.rollback()
+        raise DivExcep(
+            code=StandardBusinessEnum.FAIL.value[0],
+            msg="用户数据修改失败"
         )
