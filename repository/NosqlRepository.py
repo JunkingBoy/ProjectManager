@@ -99,17 +99,18 @@ def sync_update(
 
 def sync_read(
     file_path: str,
-    key: str
-) -> str:
+    key: str = ""
+) -> str | dict:
     file: Path = Path(file_path)
     if not file.exists():
         raise DivExcep(
             code=StandardBusinessEnum.FAIL.value[0],
             msg=f"NoSQL 文件不存在: {file_path}"
         )
-    with open(file_path, "r", encoding="utf-8") as f:
+    with open(file_path, "r+", encoding="utf-8") as f:
         with FileLock(f):
             content: dict = json.load(f) if file.stat().st_size > 0 else {}
+            if not key: return content
             if key not in content:
                 raise DivExcep(
                     code=StandardBusinessEnum.FAIL.value[0],
