@@ -19,8 +19,7 @@ class NoSQLAdapter:
             self._param.SYS_NOSQL_NAME,
             self._param.PROJECT_NOSQL_NAME,
             self._param.PROJECT_TYPE_NOSQL_NAME,
-        ]:
-            create_file(self._param.NOSQL_PATH, file_name.replace(".json", ""), ".json")
+        ]: create_file(self._param.NOSQL_PATH, file_name.replace(".json", ""), ".json")
 
     @property
     def sys_file_path(self) -> str: return (Path(self._param.NOSQL_PATH) / self._param.SYS_NOSQL_NAME).as_posix()
