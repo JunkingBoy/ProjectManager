@@ -30,6 +30,16 @@ class StandardSqliteConnTemplate:
     def info(self) -> dict: return deepcopy(self.__dict__)
 
 @dataclass
+class StandardNoSqlConnTemplate:
+    NOSQL_PATH: str = create_dir("nosql")
+    SYS_NOSQL_NAME: str = "system.json"
+    PROJECT_NOSQL_NAME: str = "project.json"
+    PROJECT_TYPE_NOSQL_NAME: str = "project_type.json"
+
+    @property
+    def info(self) -> dict: return deepcopy(self.__dict__)
+
+@dataclass
 class StandardTokenInfoTemplate:
     uid: str
     exp: int # token颁发时的时间戳

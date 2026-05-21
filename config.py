@@ -10,11 +10,13 @@ from routers.User import user
 
 from utils.Logs import ExceptionLog
 from utils.Excptions import DivExcep
+from adapters.NoSql import NoSQLAdapter
 from adapters.Sqlite import SQLiteAdapter
 from dantics.GlobalDantic import CoreModel
+from utils.NoSqlPool import StandardNoSQLPool
 from utils.Pool import StandardSQLiteDBConnectPool
-from templates.StandardSysTemplate import StandardSqliteConnTemplate
 from models import BaseModel, TbPoint, TbUser, TbRequirements, TbBug, TbWork
+from templates.StandardSysTemplate import StandardSqliteConnTemplate, StandardNoSqlConnTemplate
 
 # 提供初始化用的建表方法
 async def create_all_tables() -> StandardSQLiteDBConnectPool:
@@ -33,6 +35,13 @@ async def create_all_tables() -> StandardSQLiteDBConnectPool:
         e.error(f"数据库表创建失败: {str(err)}")
         raise
 
+# 初始化Nosql存储
+async def init_nosql_storage() -> StandardNoSQLPool:
+    nosql_info: StandardNoSqlConnTemplate = StandardNoSqlConnTemplate()
+    nosql_ada: NoSQLAdapter = NoSQLAdapter(nosql_info)
+    nosql_pool: StandardNoSQLPool = StandardNoSQLPool(nosql_ada)
+    return nosql_pool
+
 # 定义fastapi推荐的生命周期管理
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -44,6 +53,9 @@ async def lifespan(app: FastAPI):
         db_pool: StandardSQLiteDBConnectPool = await create_all_tables()
         # 挂载到 FastAPI 实例上，方便全局访问
         app.state.db_pool = db_pool
+        # 初始化 NoSQL 存储并挂载
+        nosql_pool: StandardNoSQLPool = await init_nosql_storage()
+        app.state.nosql_pool = nosql_pool
         yield
     except Exception as exc:
         e.error(str(exc))
