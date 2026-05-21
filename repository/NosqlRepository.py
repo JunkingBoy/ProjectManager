@@ -69,8 +69,7 @@ def sync_delete(
 
 def sync_update(
     file_path: str,
-    key: str,
-    value: str
+    data: NoSqlDataTemplate
 ) -> StandardBusinessEnum:
     e: ExceptionLog = ExceptionLog.get_instance()
     file: Path = Path(file_path)
@@ -82,19 +81,19 @@ def sync_update(
     with open(file_path, "r", encoding="utf-8") as f:
         with FileLock(f):
             content: dict = json.load(f) if file.stat().st_size > 0 else {}
-            if key not in content:
+            if data.key not in content:
                 raise DivExcep(
                     code=StandardBusinessEnum.FAIL.value[0],
-                    msg=f"key '{key}' 不存在"
+                    msg=f"key '{data.key}' 不存在"
                 )
-            content[key] = value
+            content[data.key] = data.value
     try: atomic_write(file_path, content)
     except Exception:
         raise DivExcep(
             code=StandardBusinessEnum.FAIL.value[0],
             msg="NoSQL 修改失败"
         )
-    e.info(f"NoSQL 修改成功: key={key}, file={file_path}")
+    e.info(f"NoSQL 修改成功: key={data.key}, file={file_path}")
     return StandardBusinessEnum.SUCCESS
 
 def sync_read(
