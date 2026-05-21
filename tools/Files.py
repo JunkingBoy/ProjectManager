@@ -83,11 +83,9 @@ class FileLock:
     def __init__(self, file: IO[Any]) -> None:
         self._file: IO[Any] = file
         self._pos: int = 0
-
     def __enter__(self) -> None:
         self._pos = self._file.tell()
         _lock(self._file)
-
     def __exit__(self, *args: Any) -> None:
         self._file.seek(self._pos)
         _unlock(self._file)

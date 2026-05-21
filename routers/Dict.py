@@ -4,10 +4,10 @@ from fastapi import APIRouter, Depends
 from fastapi.responses import JSONResponse
 
 from depends.Auth import authentication
-from dantics.DictDantic import NoSqlCheck
-from service.NoSqlCenter import get_nosql_type_list, get_nosql_type_values
+from dantics.DictDantic import NoSqlCheck, NoSqlAdd
 from enums.StandardBusEnum import StandardBusinessEnum
 from templates.StandardResTemplate import StandardResponse
+from service.NoSqlCenter import get_nosql_type_list, get_nosql_type_values
 
 dict: APIRouter = APIRouter(
     prefix="/dict",
@@ -81,3 +81,10 @@ async def get_one(
         status_code=200,
         content=ret_res.info
     )
+
+@dict.post("/add")
+async def add_one(
+    r: Request,
+    data: NoSqlAdd,
+    success_auth: tuple = Depends(authentication)
+) -> JSONResponse: ...
