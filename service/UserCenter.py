@@ -15,7 +15,7 @@ from templates.StandardSysTemplate import StandardTokenInfoTemplate
 from tools.Re import is_valid_email, is_valid_phone, is_valid_password
 from dantics.UserDantic import UserRegister, UserLogin, UserToken, UserModify
 from templates.StandardRepositoryTemplate import StandardUserRepositoryTemplate, StandardUserModRepositoryTemplate
-from repository.UserRepository import user_alive, user_create, email_repeat_check, user_repeat_normal, user_update
+from repository.UserRepository import user_alive, user_create, email_repeat_check, user_repeat_normal, user_update, user_uid
 
 async def user_check(
     r: Request,
@@ -58,8 +58,8 @@ async def user_register(
                 await encrypt(decrypted_email, tmp_vector)
             )
             if email_repeat_res: return (StandardBusinessEnum.FAIL.value[0], "邮箱已存在")
-            alive_res: tuple = await user_alive(session, encrypted_data)
-            if StandardBusinessEnum.UNREGISTERED.value[0] != alive_res[0]: return (StandardBusinessEnum.FAIL.value[0], "用户已存在")
+            alive_res: StandardBusinessEnum = await user_alive(session, encrypted_data)
+            if StandardBusinessEnum.UNREGISTERED != alive_res: return (StandardBusinessEnum.FAIL.value[0], "用户已存在")
             # 加密用户数据
             tmp_uid: str = generate_uid()
             tmp_username: str = f"用户{decrypted_phone}"
@@ -74,8 +74,8 @@ async def user_register(
                 email=tmp_email
             )
             # 创建用户
-            create_res_code: int = await user_create(session, user_tmplate)
-            return (create_res_code, "用户注册成功")
+            create_res_code: StandardBusinessEnum = await user_create(session, user_tmplate)
+            return (create_res_code.value[0], "用户注册成功")
 
 async def user_login(
     r: Request,
@@ -100,13 +100,14 @@ async def user_login(
         )
         # 拿到连接池的session
         async with db_pool.get_session() as session:
-            alive_res: tuple = await user_alive(session, encrypted_data)
-            if StandardBusinessEnum.UNREGISTERED.value[0] == alive_res[0]: return (StandardBusinessEnum.UNREGISTERED.value[0], "用户未注册")
-            elif StandardBusinessEnum.PWDERROR.value[0] == alive_res[0]: return (StandardBusinessEnum.PWDERROR.value[0], "密码错误")
+            alive_res: StandardBusinessEnum = await user_alive(session, encrypted_data)
+            if StandardBusinessEnum.UNREGISTERED == alive_res: return (StandardBusinessEnum.UNREGISTERED.value[0], "用户未注册")
+            elif StandardBusinessEnum.PWDERROR == alive_res: return (StandardBusinessEnum.PWDERROR.value[0], "密码错误")
             else:
+                _uid: str = await user_uid(session, encrypted_data)
                 # 发布签名
                 token_inner_info: StandardTokenInfoTemplate = StandardTokenInfoTemplate(
-                    uid=await encrypt(alive_res[1]),
+                    uid=await encrypt(_uid),
                     exp=int((datetime.now(tz=UTCTime) + timedelta(minutes=240)).timestamp())
                 )
                 auth: str = await create_access_token(token_inner_info)
