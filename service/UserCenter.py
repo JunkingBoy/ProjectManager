@@ -181,4 +181,4 @@ async def user_role_list(
 ) -> tuple:
     u_platform: Optional[str] = r.headers.get("sec-ch-ua-platform")
     if not u_platform: return (StandardBusinessEnum.FAIL.value[0], "请求头校验失败")
-    else: return (StandardBusinessEnum.SUCCESS.value[0], "操作成功", StandardUserRoleEnum.info)
+    else: return (StandardBusinessEnum.SUCCESS.value[0], "操作成功", StandardUserRoleEnum.info())
