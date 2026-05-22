@@ -10,7 +10,7 @@ from utils.Excptions import DivExcep
 from models.TbRequirements import Requirements
 from templates.StandardDBTemplate import TbRequirementsTemplate
 from enums.StandardBusEnum import StandardBusinessEnum, StandardReqStatusEnum
-from templates.StandardRepositoryTemplate import StandardRequirementsInfoTemplate, StandardRequirementsDetailTemplate
+from templates.StandardRepositoryTemplate import StandardRequirementsInfoTemplate, StandardRequirementsDetailTemplate, StandardRequirementsModifyTemplate
 
 async def requirement_create(
     session: AsyncSession,
@@ -127,6 +127,45 @@ async def requirement_list_info(
         raise DivExcep(
             code=StandardBusinessEnum.FAIL.value[0],
             msg="需求列表查询失败"
+        )
+
+async def requirement_mod(
+    session: AsyncSession,
+    data: StandardRequirementsModifyTemplate
+) -> StandardBusinessEnum:
+    e: ExceptionLog = ExceptionLog.get_instance()
+    try:
+        stmt: Select = select(Requirements).where(
+            and_(
+                Requirements.requirement_id == data.decrypt_req_id,  # type: ignore
+                or_(
+                    Requirements.person == data.decrypt_uid,    # type: ignore
+                    Requirements.relevant == data.decrypt_uid   # type: ignore
+                )
+            )
+        )
+        sql_res: Result = await session.execute(stmt)
+        req = sql_res.scalar_one_or_none()
+        if not req: return StandardBusinessEnum.FAIL
+        req.relevant = data.decrypt_relevant
+        req.priority = data.priority
+        req.remark = data.remark
+        await session.commit()
+        e.info(f"需求修改成功: {data.decrypt_req_id}")
+        return StandardBusinessEnum.SUCCESS
+    except SQLAlchemyError as sql_e:
+        await session.rollback()
+        e.error(f"需求修改数据库异常{sql_e}")
+        raise DivExcep(
+            code=StandardBusinessEnum.FAIL.value[0],
+            msg="需求修改数据库异常"
+        )
+    except Exception as err:
+        await session.rollback()
+        e.error(f"需求修改失败{err}")
+        raise DivExcep(
+            code=StandardBusinessEnum.FAIL.value[0],
+            msg="需求修改失败"
         )
 
 async def requirement_detail_info(

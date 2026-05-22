@@ -1,5 +1,3 @@
-import traceback
-
 from pathlib import Path
 from typing import Optional
 from datetime import datetime
@@ -10,11 +8,11 @@ from utils.Encry import decrypt, encrypt
 from utils.Pool import StandardSQLiteDBConnectPool
 from repository.UserRepository import user_repeat_normal
 from templates.StandardDBTemplate import TbRequirementsTemplate
-from templates.StandardRepositoryTemplate import StandardRequirementsDetailTemplate
 from repository.RequirementRepository import requirement_create
 from tools.Files import create_dir, calc_file_hash, search_download_file, del_path_or_file
-from repository.RequirementRepository import confirm_user_doc_relation, requirement_list_info, requirement_detail_info
-from dantics.ReqDantic import RequirementAdd, RequirementFileUpload, RequirementFileDownload
+from dantics.ReqDantic import RequirementAdd, RequirementFileUpload, RequirementFileDownload, RequirementModify
+from repository.RequirementRepository import confirm_user_doc_relation, requirement_list_info, requirement_detail_info, requirement_mod
+from templates.StandardRepositoryTemplate import StandardRequirementsDetailTemplate, StandardRequirementsModifyTemplate
 from enums.StandardBusEnum import StandardBusinessEnum, StandardReqSourceEnum, StandardReqStatusEnum, StandardReqPriorityEnum
 
 async def requirement_add(
@@ -156,6 +154,36 @@ async def requirement_detail(
             d["req_id"] = await encrypt(raw.req_id)
             if raw.related_doc: d["related_doc"] = await encrypt(raw.related_doc)
             return (StandardBusinessEnum.SUCCESS.value[0], "查询成功", d)
+
+async def requirement_modify(
+    r: Request,
+    decrypted_uid: str,
+    model: RequirementModify
+) -> tuple:
+    u_platform: Optional[str] = r.headers.get("sec-ch-ua-platform")
+    if not u_platform: return (StandardBusinessEnum.FAIL.value[0], "请求头校验失败")
+    else:
+        _decrypted_requirement_id: str = await decrypt(model.requirement_id)
+        _decrypted_relevant: str = await decrypt(model.relevant)
+        db_pool: StandardSQLiteDBConnectPool = r.app.state.db_pool
+        async with db_pool.get_session() as session:
+            _is_normal: bool = await user_repeat_normal(session, decrypted_uid)
+            if not _is_normal: return (StandardBusinessEnum.FAIL.value[0], "用户状态异常")
+            # 构建StandardRequirementsModifyTemplate
+            _req_mod_data: StandardRequirementsModifyTemplate = StandardRequirementsModifyTemplate(
+                decrypt_uid=decrypted_uid,
+                decrypt_req_id=_decrypted_requirement_id,
+                decrypt_relevant=_decrypted_relevant,
+                priority=model.priority,
+                remark=model.remark if model.remark else ""
+            )
+            _res: StandardBusinessEnum = await requirement_mod(
+                session,
+                _req_mod_data
+            )
+            if _res != StandardBusinessEnum.SUCCESS: return (StandardBusinessEnum.FAIL.value[0], "需求不存在或修改失败")
+            return (StandardBusinessEnum.SUCCESS.value[0], "需求修改成功")
+
 
 async def req_source_list(
     r: Request

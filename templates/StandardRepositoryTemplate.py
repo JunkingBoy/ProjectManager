@@ -54,3 +54,14 @@ class StandardRequirementsDetailTemplate:
 
     @property
     def info(self) -> dict: return self.__dict__.copy()
+
+@dataclass
+class StandardRequirementsModifyTemplate:
+    decrypt_uid: str
+    decrypt_req_id: str
+    decrypt_relevant: str
+    priority: int
+    remark: str
+
+    @property
+    def info(self) -> dict: return self.__dict__.copy()

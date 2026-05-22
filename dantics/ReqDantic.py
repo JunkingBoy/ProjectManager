@@ -5,6 +5,7 @@ from pydantic import Field, field_validator, ConfigDict
 
 from dantics.GlobalDantic import CoreModel
 from tools.Re import ts_to_datetime_or_zero
+from enums.StandardBusEnum import StandardReqPriorityEnum
 
 class RequirementAdd(CoreModel):
     model_config = ConfigDict(from_attributes=True)
@@ -202,3 +203,35 @@ class RequirementDetail(CoreModel):
         max_length=256,
         description="需求ID加密值"
     )]
+
+class RequirementModify(CoreModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    requirement_id: Annotated[str, Field(
+        ...,
+        min_length=1,
+        max_length=256,
+        description="需求ID加密值"
+    )]
+    relevant: Annotated[str, Field(
+        ...,
+        min_length=1,
+        max_length=128,
+        description="需求技术负责人ID加密值"
+    )]
+    priority: Annotated[int, Field(
+        ...,
+        description="需求优先级"
+    )]
+    remark: Annotated[str | None, Field(
+        None,
+        max_length=256,
+        description="需求备注"
+    )]
+
+    @field_validator('priority')
+    @classmethod
+    def validate_priority(cls, v: int) -> int:
+        valid_values: set = {item.value for item in StandardReqPriorityEnum}
+        if v not in valid_values: raise ValueError('非法优先级')
+        return v
