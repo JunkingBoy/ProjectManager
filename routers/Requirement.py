@@ -33,10 +33,10 @@ async def upload_req_file(
         )
     return JSONResponse(status_code=200, content=ret_res.info)
 
-@requirement.get("/download")
+@requirement.get("/download", response_model=None)
 async def download_req_file(
     r: Request,
-    data: RequirementFileDownload,
+    data: RequirementFileDownload = Depends(),
     success_auth: tuple = Depends(authentication)
 ) -> JSONResponse | FileResponse:
     if success_auth[0] != StandardBusinessEnum.SUCCESS.value[0]:
