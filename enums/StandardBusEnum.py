@@ -30,21 +30,42 @@ class StandardReqSourceEnum(Enum):
     SELF = 0    # 自行创建
     THIRD = 1   # 第三方接入
 
+    @classmethod
+    def info(cls) -> dict: return {
+            cls.SELF.value: "手动创建",
+            cls.THIRD.value: "第三方接入"
+        }
+
 class StandardReqStatusEnum(Enum):
     '''
     需求状态机枚举
     '''
-    WAIT = 0
-    DESIGN = 1
-    DEVELOP = 2
-    TEST = 3
-    ONLINE = 4
-    CANCEL = 5
+    STARTG = 0
+    TEST = 1
+    BUSINESSTEST = 2
+    RELEASE = 3
+    RELEASED = 4
+
+    @classmethod
+    def info(cls) -> dict: return {
+            cls.STARTG.value: "进行中",
+            cls.TEST.value: "综合测试",
+            cls.BUSINESSTEST.value: "业务测试",
+            cls.RELEASE.value: "待发布",
+            cls.RELEASED.value: "已发布"
+        }
 
 class StandardReqPriorityEnum(Enum):
     LOW = 0
     MIDDLE = 1
     HIGHT = 2
+
+    @classmethod
+    def info(cls) -> dict: return {
+            cls.LOW.value: "低",
+            cls.MIDDLE.value: "中",
+            cls.HIGHT.value: "高"
+        }
 
 class StandardPointStatusEnum(Enum):
     '''

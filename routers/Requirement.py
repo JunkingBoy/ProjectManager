@@ -8,7 +8,15 @@ from depends.Auth import authentication
 from enums.StandardBusEnum import StandardBusinessEnum
 from templates.StandardResTemplate import StandardResponse
 from dantics.ReqDantic import RequirementAdd, RequirementFileDownload, RequirementFileDelete
-from service.RequirementCenter import requirement_file_upload, requirement_file_download, requirement_file_delete, requirement_add
+from service.RequirementCenter import (
+    requirement_file_upload,
+    requirement_file_download,
+    requirement_file_delete,
+    requirement_add,
+    req_source_list,
+    req_status_list,
+    req_priority_list,
+)
 
 requirement = APIRouter(
     prefix="/requirement",
@@ -87,3 +95,33 @@ async def add_req_one(
         return JSONResponse(status_code=200, content=StandardResponse(
             code=add_res[0], msg=add_res[1], data=None, path=None
         ).info)
+
+
+@requirement.get("/source")
+async def get_source_list(
+    r: Request,
+) -> JSONResponse:
+    res: tuple = await req_source_list(r)
+    return JSONResponse(status_code=200, content=StandardResponse(
+        code=res[0], msg=res[1], data=res[2] if len(res) > 2 else None, path=None
+    ).info)
+
+
+@requirement.get("/status")
+async def get_status_list(
+    r: Request,
+) -> JSONResponse:
+    res: tuple = await req_status_list(r)
+    return JSONResponse(status_code=200, content=StandardResponse(
+        code=res[0], msg=res[1], data=res[2] if len(res) > 2 else None, path=None
+    ).info)
+
+
+@requirement.get("/priority")
+async def get_priority_list(
+    r: Request,
+) -> JSONResponse:
+    res: tuple = await req_priority_list(r)
+    return JSONResponse(status_code=200, content=StandardResponse(
+        code=res[0], msg=res[1], data=res[2] if len(res) > 2 else None, path=None
+    ).info)
