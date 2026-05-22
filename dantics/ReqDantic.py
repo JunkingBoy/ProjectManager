@@ -1,9 +1,8 @@
 from typing import Annotated
 from pydantic import Field, field_validator, ConfigDict
 
-from tools.Re import is_valid_username, ts_to_datetime_or_zero
 from dantics.GlobalDantic import CoreModel
-from templates.StandardSysTemplate import StandardNoSqlConnTemplate
+from tools.Re import ts_to_datetime_or_zero
 
 class RequirementAdd(CoreModel):
     model_config = ConfigDict(from_attributes=True)
@@ -66,7 +65,13 @@ class RequirementAdd(CoreModel):
         ...,
         min_length=1,
         max_length=128,
-        description="需求关联需求ID加密值"
+        description="需求技术负责人ID加密值"
+    )]
+    related_doc: Annotated[str, Field(
+        ...,
+        min_length=1,
+        max_length=128,
+        description="需求关联文档ID加密值"
     )]
     total: Annotated[str, Field(
         ...,

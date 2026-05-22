@@ -27,19 +27,24 @@ class StandardReqSourceEnum(Enum):
     '''
     需求来源枚举
     '''
-    SELF = 1    # 自行创建
-    THIRD = 2   # 第三方接入
+    SELF = 0    # 自行创建
+    THIRD = 1   # 第三方接入
 
 class StandardReqStatusEnum(Enum):
     '''
     需求状态机枚举
     '''
-    WAIT = 1
-    DESIGN = 2
-    DEVELOP = 3
-    TEST = 4
-    ONLINE = 5
-    CANCEL = 6
+    WAIT = 0
+    DESIGN = 1
+    DEVELOP = 2
+    TEST = 3
+    ONLINE = 4
+    CANCEL = 5
+
+class StandardReqPriorityEnum(Enum):
+    LOW = 0
+    MIDDLE = 1
+    HIGHT = 2
 
 class StandardPointStatusEnum(Enum):
     '''
