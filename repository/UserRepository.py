@@ -208,7 +208,7 @@ async def user_all(
         )
         sql_res: Result = await session.execute(user_sql)
         user_list: Sequence = sql_res.scalars().all()
-        result: list = [{"uid": user.uid, "username": user.username} for user in user_list]
+        result: list = [{"uid": user.uid, "username": user.username, "role": user.role} for user in user_list]
         return result
     except SQLAlchemyError as sql_e:
         e.error(f"用户列表查询异常{sql_e}")
@@ -238,8 +238,8 @@ async def user_info(
         )
         sql_res: Result = await session.execute(user_sql)
         user_info = sql_res.scalar_one_or_none()
-        if not user_info: return (StandardBusinessEnum.FAIL, None)
-        return (StandardBusinessEnum.SUCCESS, user_info.username)
+        if not user_info: return (StandardBusinessEnum.FAIL, None, None)
+        return (StandardBusinessEnum.SUCCESS, user_info.username, user_info.role)
     except SQLAlchemyError as sql_e:
         e.error(f"用户信息查询异常{sql_e}")
         raise DivExcep(

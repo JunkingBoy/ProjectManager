@@ -133,7 +133,7 @@ async def user_list(
         db_pool: StandardSQLiteDBConnectPool = r.app.state.db_pool
         async with db_pool.get_session() as session:
             raw_list: list = await user_all(session)
-            result: list = [{"uid": await encrypt(item["uid"]), "username": item["username"]} for item in raw_list]
+            result: list = [{"uid": await encrypt(item["uid"]), "username": item["username"], "role": json.loads(item["role"]) if item["role"] else []} for item in raw_list]
             return (StandardBusinessEnum.SUCCESS.value[0], "查询成功", result)
 
 async def user_modify(
@@ -174,7 +174,8 @@ async def user_person_info(
         async with db_pool.get_session() as session:
             info: tuple = await user_info(session, decrypted_uid)
             if StandardBusinessEnum.FAIL == info[0]: return info[0].value[0], "用户信息获取失败"
-            return (StandardBusinessEnum.SUCCESS.value[0], "用户信息获取成功", {"username": info[1]})
+            role_list: list = json.loads(info[2]) if info[2] else []
+            return (StandardBusinessEnum.SUCCESS.value[0], "用户信息获取成功", {"username": info[1], "role": role_list})
 
 async def user_role_list(
     r: Request
