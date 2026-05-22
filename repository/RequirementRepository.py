@@ -7,8 +7,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from utils.Logs import ExceptionLog
 from utils.Excptions import DivExcep
 from models.TbRequirements import Requirements
-from enums.StandardBusEnum import StandardBusinessEnum, StandardReqStatusEnum
 from templates.StandardDBTemplate import TbRequirementsTemplate
+from enums.StandardBusEnum import StandardBusinessEnum, StandardReqStatusEnum
+from templates.StandardRepositoryTemplate import StandardRequirementsInfoTemplate
 
 async def requirement_create(
     session: AsyncSession,
@@ -76,4 +77,43 @@ async def confirm_user_doc_relation(
         raise DivExcep(
             code=StandardBusinessEnum.FAIL.value[0],
             msg="用户文档关系确认失败"
+        )
+
+async def requirement_list_info(
+    session: AsyncSession
+) -> list:
+    e: ExceptionLog = ExceptionLog.get_instance()
+    try:
+        stmt: Select = select(Requirements).where(
+            Requirements.status != StandardReqStatusEnum.RELEASED.value  # type: ignore
+        )
+        sql_res: Result = await session.execute(stmt)
+        req_list = sql_res.scalars().all()
+        result: list = [
+            StandardRequirementsInfoTemplate(
+                req_id=req.requirement_id,
+                number=req.number,
+                title=req.title,
+                desc=req.description,
+                status=req.status,
+                priority=req.priority,
+                req_dev_tasks_count=0,
+                req_dev_tasks_done_count=0,
+                req_bug_count=0,
+                req_bug_done_count=0,
+                req_business_bug_done_count=0,
+            ) for req in req_list
+        ]
+        return result
+    except SQLAlchemyError as sql_e:
+        e.error(f"需求列表查询异常{sql_e}")
+        raise DivExcep(
+            code=StandardBusinessEnum.FAIL.value[0],
+            msg="需求列表查询异常"
+        )
+    except Exception as err:
+        e.error(f"需求列表查询失败{err}")
+        raise DivExcep(
+            code=StandardBusinessEnum.FAIL.value[0],
+            msg="需求列表查询失败"
         )

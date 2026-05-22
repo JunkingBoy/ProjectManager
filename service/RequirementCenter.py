@@ -11,8 +11,8 @@ from utils.Pool import StandardSQLiteDBConnectPool
 from repository.UserRepository import user_repeat_normal
 from templates.StandardDBTemplate import TbRequirementsTemplate
 from repository.RequirementRepository import requirement_create
-from repository.RequirementRepository import confirm_user_doc_relation
 from tools.Files import create_dir, calc_file_hash, search_download_file, del_path_or_file
+from repository.RequirementRepository import confirm_user_doc_relation, requirement_list_info
 from dantics.ReqDantic import RequirementAdd, RequirementFileUpload, RequirementFileDownload
 from enums.StandardBusEnum import StandardBusinessEnum, StandardReqSourceEnum, StandardReqStatusEnum, StandardReqPriorityEnum
 
@@ -121,6 +121,21 @@ async def requirement_file_delete(
             if not _file_path: return (StandardBusinessEnum.FAIL.value[0], "未找到文件")
             del_path_or_file(_file_path, only_file=True)
             return (StandardBusinessEnum.SUCCESS.value[0], "文件删除成功")
+
+async def requirement_list(
+    r: Request
+) -> tuple:
+    u_platform: Optional[str] = r.headers.get("sec-ch-ua-platform")
+    if not u_platform: return (StandardBusinessEnum.FAIL.value[0], "请求头校验失败")
+    else:
+        db_pool: StandardSQLiteDBConnectPool = r.app.state.db_pool
+        async with db_pool.get_session() as session:
+            raw_data: list = await requirement_list_info(session)
+            result: list = []
+            for item in raw_data:
+                item.info["req_id"] = await encrypt(item.req_id)
+                result.append(item.info)
+            return (StandardBusinessEnum.SUCCESS.value[0], "查询成功", result)
 
 async def req_source_list(
     r: Request
