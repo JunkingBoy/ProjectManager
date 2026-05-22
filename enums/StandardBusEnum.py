@@ -79,3 +79,15 @@ class StandardBugStatusEnum(Enum):
     FIX = 1
     NONBUG = 2
     CLOSE = 3
+
+class StandardUserRoleEnum(Enum):
+    '''
+    用户角色枚举
+    '''
+    PM = 0
+    DEVELOPER = 1
+    ANDROID = 2
+    IOS = 3
+    MINI = 4
+    H5 = 5
+    QA = 6
