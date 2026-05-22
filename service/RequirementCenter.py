@@ -133,8 +133,9 @@ async def requirement_list(
             raw_data: list = await requirement_list_info(session)
             result: list = []
             for item in raw_data:
-                item.info["req_id"] = await encrypt(item.req_id)
-                result.append(item.info)
+                d: dict = item.info
+                d["req_id"] = await encrypt(item.req_id)
+                result.append(d)
             return (StandardBusinessEnum.SUCCESS.value[0], "查询成功", result)
 
 async def req_source_list(
