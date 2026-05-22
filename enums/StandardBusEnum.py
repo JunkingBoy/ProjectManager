@@ -91,3 +91,14 @@ class StandardUserRoleEnum(Enum):
     MINI = 4
     H5 = 5
     QA = 6
+
+    @classmethod
+    def info(cls) -> dict: return {
+            cls.PM.value: "项目经理",
+            cls.DEVELOPER.value: "后台开发",
+            cls.ANDROID.value: "安卓开发",
+            cls.IOS.value: "IOS开发",
+            cls.MINI.value: "小程序开发",
+            cls.H5.value: "H5开发",
+            cls.QA.value: "测试",
+        }

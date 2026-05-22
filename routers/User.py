@@ -8,7 +8,7 @@ from depends.Auth import password_verify
 from dantics.UserDantic import UserLogin, UserModify
 from enums.StandardBusEnum import StandardBusinessEnum
 from templates.StandardResTemplate import StandardResponse
-from service.UserCenter import user_register, user_login, user_modify, user_list, user_person_info
+from service.UserCenter import user_register, user_login, user_modify, user_list, user_person_info, user_role_list
 
 user: APIRouter = APIRouter(
     prefix="/user",
@@ -123,6 +123,21 @@ async def list(
         status_code=200,
         content=ret_res.info
     )
+
+@user.get("/roles")
+async def role_list(
+    r: Request,
+) -> JSONResponse:
+    role_res: tuple = await user_role_list(r)
+    if role_res[0] == StandardBusinessEnum.SUCCESS.value[0]:
+        ret_res: StandardResponse = StandardResponse(
+            code=role_res[0], msg=role_res[1], data=role_res[2], path=None
+        )
+    else:
+        ret_res: StandardResponse = StandardResponse(
+            code=role_res[0], msg=role_res[1], data=None, path=None
+        )
+    return JSONResponse(status_code=200, content=ret_res.info)
 
 @user.get("/info")
 async def info(

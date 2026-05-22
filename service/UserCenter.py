@@ -175,3 +175,10 @@ async def user_person_info(
             info: tuple = await user_info(session, decrypted_uid)
             if StandardBusinessEnum.FAIL == info[0]: return info[0].value[0], "用户信息获取失败"
             return (StandardBusinessEnum.SUCCESS.value[0], "用户信息获取成功", {"username": info[1]})
+
+async def user_role_list(
+    r: Request
+) -> tuple:
+    u_platform: Optional[str] = r.headers.get("sec-ch-ua-platform")
+    if not u_platform: return (StandardBusinessEnum.FAIL.value[0], "请求头校验失败")
+    else: return (StandardBusinessEnum.SUCCESS.value[0], "操作成功", StandardUserRoleEnum.info)
