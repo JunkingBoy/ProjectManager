@@ -8,7 +8,7 @@ from depends.Auth import authentication
 from enums.StandardBusEnum import StandardBusinessEnum
 from templates.StandardResTemplate import StandardResponse
 from dantics.ReqDantic import RequirementAdd, RequirementFileDownload, RequirementFileDelete
-from service.RequirementCenter import requirement_file_upload, requirement_file_download, requirement_file_delete
+from service.RequirementCenter import requirement_file_upload, requirement_file_download, requirement_file_delete, requirement_add
 
 requirement = APIRouter(
     prefix="/requirement",
@@ -77,4 +77,13 @@ async def add_req_one(
     r: Request,
     data: RequirementAdd,
     success_auth: tuple = Depends(authentication)
-) -> JSONResponse: ...
+) -> JSONResponse:
+    if success_auth[0] != StandardBusinessEnum.SUCCESS.value[0]:
+        return JSONResponse(status_code=200, content=StandardResponse(
+            code=success_auth[0], msg=success_auth[1], data=None, path=None
+        ).info)
+    else:
+        add_res: tuple = await requirement_add(r, data)
+        return JSONResponse(status_code=200, content=StandardResponse(
+            code=add_res[0], msg=add_res[1], data=None, path=None
+        ).info)
