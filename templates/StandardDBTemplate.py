@@ -1,6 +1,6 @@
 from copy import deepcopy
 from datetime import datetime
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from enums.StandardBusEnum import (StandardReqSourceEnum,
 StandardReqStatusEnum,
@@ -20,6 +20,7 @@ class TbUserTemplate:
     phone: str
     email: str
     password: str
+    role: str
 
     @property
     def info(self) -> dict: return self.__dict__.copy()
