@@ -1,4 +1,6 @@
+from pathlib import Path
 from typing import Annotated
+from fastapi import UploadFile
 from pydantic import Field, field_validator, ConfigDict
 
 from dantics.GlobalDantic import CoreModel
@@ -154,4 +156,13 @@ class RequirementAdd(CoreModel):
         try: ts: float = float(v)
         except ValueError: raise ValueError(f'"{v}" 为无效时间戳')
         if ts_to_datetime_or_zero(ts) == 0: raise ValueError('非法时间')
+        return v
+
+class RequirementFileUpload(CoreModel):
+    file: UploadFile
+
+    @field_validator('file')
+    @classmethod
+    def validate_file_type(cls, v: UploadFile) -> UploadFile:
+        if Path(v.filename or "").suffix.lower() not in {'.docx', '.pdf'}: raise ValueError('不支持的文件类型')
         return v
