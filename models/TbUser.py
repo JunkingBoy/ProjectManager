@@ -3,7 +3,7 @@ from . import BaseModel, UTCTime
 from typing import cast
 from copy import deepcopy
 from datetime import datetime
-from sqlalchemy import Column, Integer, String, DateTime
+from sqlalchemy import Column, Integer, String, DateTime, Text
 
 from templates.StandardDBTemplate import TbUserTemplate
 
@@ -51,6 +51,13 @@ class User(BaseModel):
         nullable=False,
         comment="密码加密值"
     ))
+    role: str = cast(str, Column(
+        Text,
+        unique=False,
+        index=True,
+        nullable=True,
+        comment="用户角色列表,JSON数组字符串,如[0,1,5] 0:项目经理1:后台开发2:安卓开发3:IOS开发4:小程序5:H56:测试"
+    ))
     active: int = cast(int, Column(
         Integer,
         default=0,
@@ -89,6 +96,7 @@ class User(BaseModel):
         self.email: str = user.email
         self.username: str = user.username
         self.password: str = user.password
+        self.role: str = user.role
 
     @property
     def info(self) -> dict: return deepcopy(self.__dict__)

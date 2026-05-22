@@ -19,6 +19,12 @@ class UserRegister(CoreModel):
         max_length=64,
         description="邮箱加密值"
     )]
+    role: Annotated[str, Field(
+        ...,
+        min_length=1,
+        max_length=128,
+        description="用户角色加密值"
+    )]
     password: Annotated[str, Field(
         ...,
         min_length=36,

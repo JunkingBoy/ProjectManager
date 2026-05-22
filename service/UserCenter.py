@@ -1,3 +1,4 @@
+import json
 from typing import Optional
 from fastapi import Request
 from datetime import datetime, timedelta
@@ -9,10 +10,10 @@ from utils.Excptions import DivExcep
 from utils.Encry import decrypt, encrypt
 from utils.JWT import create_access_token
 from utils.Pool import StandardSQLiteDBConnectPool
-from enums.StandardBusEnum import StandardBusinessEnum
 from templates.StandardDBTemplate import TbUserTemplate
 from templates.StandardSysTemplate import StandardTokenInfoTemplate
 from tools.Re import is_valid_email, is_valid_phone, is_valid_password
+from enums.StandardBusEnum import StandardBusinessEnum, StandardUserRoleEnum
 from dantics.UserDantic import UserRegister, UserLogin, UserToken, UserModify
 from templates.StandardRepositoryTemplate import StandardUserRepositoryTemplate, StandardUserModRepositoryTemplate
 from repository.UserRepository import user_alive, user_create, email_repeat_check, user_repeat_normal, user_update, user_uid, user_all, user_info
@@ -44,6 +45,14 @@ async def user_register(
         if not is_valid_phone(decrypted_phone): raise DivExcep(StandardBusinessEnum.FAIL.value[0], "手机号格式错误")
         if not is_valid_email(decrypted_email): raise DivExcep(StandardBusinessEnum.FAIL.value[0], "邮箱格式错误")
         if not is_valid_password(decrypted_password): raise DivExcep(StandardBusinessEnum.FAIL.value[0], "密码格式错误")
+        # 解密并校验角色
+        decrypted_role: str = await decrypt(model.role)
+        try: role_list: list = json.loads(decrypted_role)
+        except json.JSONDecodeError: raise DivExcep(StandardBusinessEnum.FAIL.value[0], "角色数据格式异常")
+        if not isinstance(role_list, list) or not role_list: raise DivExcep(StandardBusinessEnum.FAIL.value[0], "角色数据格式错误")
+        valid_values: set = {item.value for item in StandardUserRoleEnum}
+        for r in role_list:
+            if r not in valid_values: raise DivExcep(StandardBusinessEnum.FAIL.value[0], f"非法角色值: {r}")
         # 获取系统向量
         tmp_vector: str = get_env_val("iv", "dev")
         encrypted_data: StandardUserRepositoryTemplate = StandardUserRepositoryTemplate(
@@ -72,7 +81,8 @@ async def user_register(
                 username=tmp_username,
                 phone=tmp_encrypted_phone,
                 password=tmp_password,
-                email=tmp_email
+                email=tmp_email,
+                role=json.dumps(role_list)
             )
             # 创建用户
             create_res_code: StandardBusinessEnum = await user_create(session, user_tmplate)
