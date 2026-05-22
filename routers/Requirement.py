@@ -7,8 +7,8 @@ from fastapi.responses import JSONResponse, FileResponse
 from depends.Auth import authentication
 from enums.StandardBusEnum import StandardBusinessEnum
 from templates.StandardResTemplate import StandardResponse
-from dantics.ReqDantic import RequirementAdd, RequirementFileDownload
-from service.RequirementCenter import requirement_file_upload, requirement_file_download
+from dantics.ReqDantic import RequirementAdd, RequirementFileDownload, RequirementFileDelete
+from service.RequirementCenter import requirement_file_upload, requirement_file_download, requirement_file_delete
 
 requirement = APIRouter(
     prefix="/requirement",
@@ -54,6 +54,23 @@ async def download_req_file(
             filename=Path(down_res[2]).name,
             media_type="application/octet-stream"
         )
+
+@requirement.delete("/del/{related_doc_id}")
+async def delete_req_file(
+    r: Request,
+    related_doc_id: str,
+    success_auth: tuple = Depends(authentication)
+) -> JSONResponse:
+    if success_auth[0] != StandardBusinessEnum.SUCCESS.value[0]:
+        return JSONResponse(status_code=200, content=StandardResponse(
+            code=success_auth[0], msg=success_auth[1], data=None, path=None
+        ).info)
+    else:
+        RequirementFileDelete(related_doc_id=related_doc_id)
+        del_res: tuple = await requirement_file_delete(r, success_auth[1], related_doc_id)
+        return JSONResponse(status_code=200, content=StandardResponse(
+            code=del_res[0], msg=del_res[1], data=None, path=None
+        ).info)
 
 @requirement.post("/add")
 async def add_req_one(
