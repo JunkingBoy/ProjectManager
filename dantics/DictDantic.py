@@ -16,6 +16,7 @@ class NoSqlCheck(CoreModel):
     )]
 
     @field_validator("nosql")
+    @classmethod
     def vertry_nosql_match(cls, v: str) -> str:
         template: StandardNoSqlConnTemplate = StandardNoSqlConnTemplate()
         valid_names: list = [
@@ -43,6 +44,7 @@ class NoSqlAdd(CoreModel):
     )]
 
     @field_validator("nosql")
+    @classmethod
     def vertry_nosql_match(cls, v: str) -> str:
         template: StandardNoSqlConnTemplate = StandardNoSqlConnTemplate()
         valid_names: list = [
@@ -54,6 +56,7 @@ class NoSqlAdd(CoreModel):
         return v
 
     @field_validator("value")
+    @classmethod
     def vertry_value_match(cls, v: str) -> str:
         if not is_valid_username(v): raise ValueError("非法的值")
         return v

@@ -70,21 +70,21 @@ class Requirements(BaseModel):
         unique=False,
         index=True,
         nullable=False,
-        comment="需求所属系统:枚举值"
+        comment="需求所属系统:nosql值"
     ))
     project: str = cast(str, Column(
         String(32),
         unique=False,
         index=True,
         nullable=False,
-        comment="需求所属项目:枚举值"
+        comment="需求所属项目:nosql值"
     ))
     project_type: str = cast(str, Column(
         String(32),
         unique=False,
         index=True,
         nullable=False,
-        comment="需求所属项目类型:枚举值"
+        comment="需求所属项目类型:nosql值"
     ))
     person: str = cast(str, Column(
         String(32),

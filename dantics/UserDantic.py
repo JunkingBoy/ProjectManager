@@ -87,6 +87,7 @@ class UserModify(CoreModel):
     def info(self) -> dict: return self.model_dump()
 
     @field_validator("username")
+    @classmethod
     def vertry_username_match(cls, v: str) -> str:
         if not is_valid_username(v): raise ValueError("非法用户名")
         else: return v
