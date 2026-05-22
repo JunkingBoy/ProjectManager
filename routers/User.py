@@ -8,7 +8,7 @@ from depends.Auth import password_verify
 from dantics.UserDantic import UserLogin, UserModify
 from enums.StandardBusEnum import StandardBusinessEnum
 from templates.StandardResTemplate import StandardResponse
-from service.UserCenter import user_register, user_login, user_modify, user_list
+from service.UserCenter import user_register, user_login, user_modify, user_list, user_person_info
 
 user: APIRouter = APIRouter(
     prefix="/user",
@@ -92,7 +92,7 @@ async def modify(
     )
 
 @user.get("/list")
-async def info(
+async def list(
     r: Request,
     success_auth: tuple = Depends(authentication)
 ) -> JSONResponse:
@@ -116,6 +116,39 @@ async def info(
             ret_res: StandardResponse = StandardResponse(
                 code=list_res[0],
                 msg=list_res[1],
+                data=None,
+                path=None
+            )
+    return JSONResponse(
+        status_code=200,
+        content=ret_res.info
+    )
+
+@user.get("/info")
+async def info(
+    r: Request,
+    success_auth: tuple = Depends(authentication)
+) -> JSONResponse:
+    if success_auth[0] != StandardBusinessEnum.SUCCESS.value[0]:
+        ret_res: StandardResponse = StandardResponse(
+            code=success_auth[0],
+            msg=success_auth[1],
+            data=None,
+            path=None
+        )
+    else:
+        person_res: tuple = await user_person_info(r, success_auth[1])
+        if person_res[0] == StandardBusinessEnum.SUCCESS.value[0]:
+            ret_res: StandardResponse = StandardResponse(
+                code=person_res[0],
+                msg=person_res[1],
+                data=person_res[2],
+                path=None
+            )
+        else:
+            ret_res: StandardResponse = StandardResponse(
+                code=person_res[0],
+                msg=person_res[1],
                 data=None,
                 path=None
             )
