@@ -39,3 +39,18 @@ class StandardRequirementsInfoTemplate:
 
     @property
     def info(self) -> dict: return self.__dict__.copy()
+
+@dataclass
+class StandardRequirementsDetailTemplate:
+    req_id: str
+    number: str # 需求编号  
+    relevant: str # 需求技术负责人
+    status: int
+    priority: int
+    system: str
+    desc: str
+    related_doc: str
+    remark: str
+
+    @property
+    def info(self) -> dict: return self.__dict__.copy()

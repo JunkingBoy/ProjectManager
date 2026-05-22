@@ -7,13 +7,14 @@ from fastapi.responses import JSONResponse, FileResponse
 from depends.Auth import authentication
 from enums.StandardBusEnum import StandardBusinessEnum
 from templates.StandardResTemplate import StandardResponse
-from dantics.ReqDantic import RequirementAdd, RequirementFileDownload, RequirementFileDelete
+from dantics.ReqDantic import RequirementAdd, RequirementFileDownload, RequirementFileDelete, RequirementDetail
 from service.RequirementCenter import (
     requirement_file_upload,
     requirement_file_download,
     requirement_file_delete,
     requirement_add,
     requirement_list,
+    requirement_detail,
     req_source_list,
     req_status_list,
     req_priority_list,
@@ -134,6 +135,22 @@ async def get_requirement_list(
             code=success_auth[0], msg=success_auth[1], data=None, path=None
         ).info)
     res: tuple = await requirement_list(r)
+    return JSONResponse(status_code=200, content=StandardResponse(
+        code=res[0], msg=res[1], data=res[2] if len(res) > 2 else None, path=None
+    ).info)
+
+
+@requirement.get("/detail")
+async def get_requirement_detail(
+    r: Request,
+    data: RequirementDetail = Depends(),
+    success_auth: tuple = Depends(authentication)
+) -> JSONResponse:
+    if success_auth[0] != StandardBusinessEnum.SUCCESS.value[0]:
+        return JSONResponse(status_code=200, content=StandardResponse(
+            code=success_auth[0], msg=success_auth[1], data=None, path=None
+        ).info)
+    res: tuple = await requirement_detail(r, data.requirement_id)
     return JSONResponse(status_code=200, content=StandardResponse(
         code=res[0], msg=res[1], data=res[2] if len(res) > 2 else None, path=None
     ).info)
