@@ -96,7 +96,6 @@ async def add_req_one(
             code=add_res[0], msg=add_res[1], data=None, path=None
         ).info)
 
-
 @requirement.get("/source")
 async def get_source_list(
     r: Request,
@@ -106,7 +105,6 @@ async def get_source_list(
         code=res[0], msg=res[1], data=res[2] if len(res) > 2 else None, path=None
     ).info)
 
-
 @requirement.get("/status")
 async def get_status_list(
     r: Request,
@@ -115,7 +113,6 @@ async def get_status_list(
     return JSONResponse(status_code=200, content=StandardResponse(
         code=res[0], msg=res[1], data=res[2] if len(res) > 2 else None, path=None
     ).info)
-
 
 @requirement.get("/priority")
 async def get_priority_list(
