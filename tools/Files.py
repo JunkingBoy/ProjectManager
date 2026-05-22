@@ -1,11 +1,13 @@
 import os
 import json
-import platform
+import hashlib
 import tempfile
+import platform
 
 from pathlib import Path
 from datetime import datetime
 from dotenv import load_dotenv
+from fastapi import UploadFile
 from typing import Any, Optional, IO
 
 '''
@@ -69,6 +71,14 @@ def create_file(
         if not tar_file.exists(): tar_file.touch()
         return tar_file.as_posix()
     except Exception: raise Exception('创建文件失败')
+
+def calc_file_hash(content: bytes) -> str: return hashlib.sha256(content).hexdigest()
+
+async def save_upload_file(file: UploadFile, dst_path: str) -> None:
+    """读取 UploadFile 内容并写入目标路径"""
+    content: bytes = await file.read()
+    with open(dst_path, "wb") as f: f.write(content)
+    await file.seek(0)
 
 if platform.system() == "Windows":
     import msvcrt
