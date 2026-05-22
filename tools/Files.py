@@ -1,5 +1,6 @@
 import os
 import json
+import shutil
 import hashlib
 import tempfile
 import platform
@@ -71,6 +72,24 @@ def create_file(
         if not tar_file.exists(): tar_file.touch()
         return tar_file.as_posix()
     except Exception: raise Exception('创建文件失败')
+
+def del_path_or_file(path: str, only_file: bool = False) -> None:
+    """
+    删除指定路径（文件或目录）。
+    
+    :param path: 要删除的路径
+    :param only_file: 若为 True，则只允许删除文件；若为 False，可删除文件或目录（包括非空目录）
+    """
+    if not path or not path.strip(): return
+    real_path: Path = Path(path.strip())
+    if not real_path.exists(): return
+    if only_file:
+        if not real_path.is_file(): return
+        else: real_path.unlink()
+    else:
+        if real_path.is_file(): real_path.unlink()
+        elif real_path.is_dir(): shutil.rmtree(real_path)
+        else: real_path.unlink()
 
 def calc_file_hash(content: bytes) -> str: return hashlib.sha256(content).hexdigest()
 
