@@ -73,7 +73,7 @@ async def requirement_file_upload(
 
 async def requirement_file_download(
     r: Request,
-    encrypted_uid: str,
+    decrypted_uid: str,
     model: RequirementFileDownload
 ) -> tuple:
     u_platform: Optional[str] = r.headers.get("sec-ch-ua-platform")
@@ -81,7 +81,7 @@ async def requirement_file_download(
     else:
         db_pool: StandardSQLiteDBConnectPool = r.app.state.db_pool
         async with db_pool.get_session() as session:
-            _tmp_uid: str = await decrypt(encrypted_uid)
+            _tmp_uid: str = decrypted_uid
             _is_normal: bool = await user_repeat_normal(session, _tmp_uid)
             if not _is_normal: return (StandardBusinessEnum.FAIL.value[0], "用户状态异常")
             _tmp_requirement_id: str = await decrypt(model.requirement_id)
@@ -99,7 +99,7 @@ async def requirement_file_download(
 
 async def requirement_file_delete(
     r: Request,
-    encrypted_uid: str,
+    decrypted_uid: str,
     encrypted_related_doc_id: str
 ) -> tuple:
     u_platform: Optional[str] = r.headers.get("sec-ch-ua-platform")
@@ -107,7 +107,7 @@ async def requirement_file_delete(
     else:
         db_pool: StandardSQLiteDBConnectPool = r.app.state.db_pool
         async with db_pool.get_session() as session:
-            _tmp_uid: str = await decrypt(encrypted_uid)
+            _tmp_uid: str = decrypted_uid
             _is_normal: bool = await user_repeat_normal(session, _tmp_uid)
             if not _is_normal: return (StandardBusinessEnum.FAIL.value[0], "用户状态异常")
             _tmp_related_doc_id: str = await decrypt(encrypted_related_doc_id)
@@ -135,6 +135,7 @@ async def requirement_list(
             for item in raw_data:
                 d: dict = item.info
                 d["req_id"] = await encrypt(item.req_id)
+                d["related_doc"] = await encrypt(item.related_doc)
                 result.append(d)
             return (StandardBusinessEnum.SUCCESS.value[0], "查询成功", result)
 

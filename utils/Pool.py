@@ -1,3 +1,5 @@
+import traceback
+
 from contextlib import asynccontextmanager
 from typing import TypeVar, Generic, AsyncIterator
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker, create_async_engine
@@ -49,7 +51,7 @@ class StandardSQLiteDBConnectPool(Generic[T]):
             try: yield session
             except Exception as e:
                 await session.rollback()
-                self._e.error(f"数据库事务异常并回滚: {str(e)}")
+                self._e.error(f"数据库事务异常并回滚: {str(e)}\n{traceback.format_exc()}")
                 raise DivExcep(
                     code=StandardBusinessEnum.INNERERROR.value[0],
                     msg=StandardBusinessEnum.INNERERROR.value[1]

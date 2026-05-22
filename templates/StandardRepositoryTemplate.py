@@ -29,6 +29,9 @@ class StandardRequirementsInfoTemplate:
     desc: str
     status: int
     priority: int
+    system: str
+    person: str
+    related_doc: str
     req_dev_tasks_count: int # 需求关联开发任务总数
     req_dev_tasks_done_count: int # 需求关联开发任务完成数
     req_bug_count: int # 需求关联bug总数
