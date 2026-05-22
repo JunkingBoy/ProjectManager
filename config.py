@@ -4,6 +4,7 @@ from pydantic import ValidationError
 from fastapi.responses import JSONResponse
 from contextlib import asynccontextmanager
 from sqlalchemy.ext.asyncio import AsyncEngine
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.exceptions import RequestValidationError
 
 from routers.Key import key
@@ -74,6 +75,13 @@ def create_app() -> FastAPI:
         version="1.0.0",
         lifespan=lifespan
     )
+    app.add_middleware(
+          CORSMiddleware,
+          allow_origins=["*"],  # 或指定具体域名
+          allow_credentials=True,
+          allow_methods=["*"],
+          allow_headers=["*"],
+      )
     return app
 
 '''
