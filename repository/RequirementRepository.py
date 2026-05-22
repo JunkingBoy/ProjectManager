@@ -1,10 +1,13 @@
+from sqlalchemy.sql import Select
+from sqlalchemy.engine import Result
+from sqlalchemy import select, and_, or_
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from utils.Logs import ExceptionLog
 from utils.Excptions import DivExcep
 from models.TbRequirements import Requirements
-from enums.StandardBusEnum import StandardBusinessEnum
+from enums.StandardBusEnum import StandardBusinessEnum, StandardReqStatusEnum
 from templates.StandardDBTemplate import TbRequirementsTemplate
 
 async def requirement_create(
@@ -34,4 +37,38 @@ async def requirement_create(
             msg="需求创建失败"
         )
 
-
+async def confirm_user_doc_relation(
+    session: AsyncSession,
+    decrypted_uid: str,
+    decrypted_requirement_id: str,
+    decrypted_related_doc_id: str
+) -> StandardBusinessEnum:
+    e: ExceptionLog = ExceptionLog.get_instance()
+    try:
+        stmt: Select = select(Requirements).where(
+            and_(
+                Requirements.requirement_id == decrypted_requirement_id, # type: ignore
+                or_(
+                    Requirements.person == decrypted_uid,   # type: ignore
+                    Requirements.relevant == decrypted_uid  # type: ignore
+                ),
+                Requirements.related_doc == decrypted_related_doc_id,  # type: ignore
+                Requirements.status != StandardReqStatusEnum.CANCEL.value  # type: ignore
+            )
+        )
+        sql_res: Result = await session.execute(stmt)
+        data = sql_res.scalar_one_or_none()
+        if data: return StandardBusinessEnum.SUCCESS
+        else: return StandardBusinessEnum.FAIL
+    except SQLAlchemyError as sql_e:
+        e.error(f"用户文档关系确认数据库异常{sql_e}", )
+        raise DivExcep(
+            code=StandardBusinessEnum.FAIL.value[0],
+            msg="用户文档关系确认数据库异常"
+        )
+    except Exception as err:
+        e.error(f"用户文档关系确认失败{err}", )
+        raise DivExcep(
+            code=StandardBusinessEnum.FAIL.value[0],
+            msg="用户文档关系确认失败"
+        )

@@ -7,11 +7,13 @@ from fastapi import Request, UploadFile
 
 from tools.Re import generate_uid
 from utils.Encry import decrypt, encrypt
-from dantics.ReqDantic import RequirementAdd, RequirementFileUpload
 from utils.Pool import StandardSQLiteDBConnectPool
+from repository.UserRepository import user_repeat_normal
 from templates.StandardDBTemplate import TbRequirementsTemplate
 from repository.RequirementRepository import requirement_create
-from tools.Files import create_dir, calc_file_hash
+from repository.RequirementRepository import confirm_user_doc_relation
+from tools.Files import create_dir, calc_file_hash, search_download_file
+from dantics.ReqDantic import RequirementAdd, RequirementFileUpload, RequirementFileDownload
 from enums.StandardBusEnum import StandardBusinessEnum, StandardReqSourceEnum, StandardReqStatusEnum, StandardReqPriorityEnum
 
 async def requirement_add(
@@ -68,3 +70,29 @@ async def requirement_file_upload(
         await file.seek(0)
         file_tag: str = await encrypt(f"{today}{file_hash}")
         return (StandardBusinessEnum.SUCCESS.value[0], "文件上传成功", {"tag": file_tag})
+
+async def requirement_file_download(
+    r: Request,
+    encrypted_uid: str,
+    model: RequirementFileDownload
+) -> tuple:
+    u_platform: Optional[str] = r.headers.get("sec-ch-ua-platform")
+    if not u_platform: return (StandardBusinessEnum.FAIL.value[0], "请求头校验失败")
+    else:
+        db_pool: StandardSQLiteDBConnectPool = r.app.state.db_pool
+        async with db_pool.get_session() as session:
+            _tmp_uid: str = await decrypt(encrypted_uid)
+            _is_normal: bool = await user_repeat_normal(session, _tmp_uid)
+            if not _is_normal: return (StandardBusinessEnum.FAIL.value[0], "用户状态异常")
+            _tmp_requirement_id: str = await decrypt(model.requirement_id)
+            _tmp_related_doc_id: str = await decrypt(model.related_doc_id)
+            _is_exist: StandardBusinessEnum = await confirm_user_doc_relation(
+                session,
+                _tmp_uid,
+                _tmp_requirement_id,
+                _tmp_related_doc_id
+            )
+            if _is_exist != StandardBusinessEnum.SUCCESS: return (StandardBusinessEnum.FAIL.value[0], "您所下载的文件和您的关系不正确")
+            _file_path: str = search_download_file("downloads", _tmp_related_doc_id)
+            if not _file_path: return (StandardBusinessEnum.FAIL.value[0], "未找到文件")
+            return (StandardBusinessEnum.SUCCESS.value[0], "文件下载成功", _file_path)

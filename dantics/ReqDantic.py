@@ -166,3 +166,19 @@ class RequirementFileUpload(CoreModel):
     def validate_file_type(cls, v: UploadFile) -> UploadFile:
         if Path(v.filename or "").suffix.lower() not in {'.docx', '.pdf'}: raise ValueError('不支持的文件类型')
         return v
+
+class RequirementFileDownload(CoreModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    requirement_id: Annotated[str, Field(
+        ...,
+        min_length=1,
+        max_length=256,
+        description="需求ID加密值"
+    )]
+    related_doc_id: Annotated[str, Field(
+        ...,
+        min_length=1,
+        max_length=256,
+        description="需求关联文档tag加密值"
+    )]

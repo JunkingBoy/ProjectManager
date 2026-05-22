@@ -74,6 +74,21 @@ def create_file(
 
 def calc_file_hash(content: bytes) -> str: return hashlib.sha256(content).hexdigest()
 
+def search_download_file(
+    base_path: str,
+    filename: str
+) -> str:
+    """根据文件名中的日期信息在下载目录中查找文件,返回完整路径"""
+    if not base_path or not filename: return ""
+    try:
+        target_day: str = filename[:8]
+        date_dir: Path = Path.cwd().joinpath(base_path, target_day)
+        if not date_dir.exists() or not date_dir.is_dir(): return ""
+        for f in date_dir.iterdir():
+            if f.is_file() and f.name.startswith(filename): return f.as_posix()
+        return ""
+    except Exception: return ""
+
 async def save_upload_file(file: UploadFile, dst_path: str) -> None:
     """读取 UploadFile 内容并写入目标路径"""
     content: bytes = await file.read()
