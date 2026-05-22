@@ -4,6 +4,7 @@ from sqlalchemy import select, and_, or_
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from models.TbUser import User
 from utils.Logs import ExceptionLog
 from utils.Excptions import DivExcep
 from models.TbRequirements import Requirements
@@ -48,7 +49,6 @@ async def confirm_user_doc_relation(
     try:
         conditions: list = [
             Requirements.related_doc == decrypted_related_doc_id,  # type: ignore
-            Requirements.status != StandardReqStatusEnum.CANCEL.value  # type: ignore
         ]
         if not decrypted_requirement_id: conditions.append(Requirements.person == decrypted_uid)  # type: ignore
         else:
@@ -89,6 +89,15 @@ async def requirement_list_info(
         )
         sql_res: Result = await session.execute(stmt)
         req_list = sql_res.scalars().all()
+        # 收集所有 person ID 并批量查询用户名
+        person_ids: set = {req.person for req in req_list if req.person}
+        if not person_ids: person_map = {}
+        else:
+            user_stmt: Select = select(User.uid, User.username).where( # type: ignore
+                User.uid.in_(person_ids)  # type: ignore
+            )
+            user_res: Result = await session.execute(user_stmt)
+            person_map: dict = {row.uid: row.username for row in user_res}
         result: list = [
             StandardRequirementsInfoTemplate(
                 req_id=req.requirement_id,
@@ -97,6 +106,9 @@ async def requirement_list_info(
                 desc=req.description,
                 status=req.status,
                 priority=req.priority,
+                system=req.system,
+                person=person_map.get(req.person, req.person or ""),
+                related_doc=req.related_doc or "",
                 req_dev_tasks_count=0,
                 req_dev_tasks_done_count=0,
                 req_bug_count=0,
