@@ -45,10 +45,9 @@ async def email_repeat_check(
 
 async def user_repeat_normal(
     session: AsyncSession,
-    encrypted_uid: str
+    decrypted_uid: str
 ) -> bool:
     e: ExceptionLog = ExceptionLog.get_instance()
-    decrypted_uid: str = await decrypt(encrypted_uid)
     try:
         user_sql: Select = select(User).where(
             and_(

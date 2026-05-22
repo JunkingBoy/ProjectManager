@@ -23,7 +23,8 @@ async def user_check(
 ) -> StandardBusinessEnum:
     db_pool: StandardSQLiteDBConnectPool = r.app.state.db_pool
     async with db_pool.get_session() as session:
-        user_repeat_res: bool = await user_repeat_normal(session, model.uid)
+        _tmp_decrypted_uid: str = await decrypt(model.uid)
+        user_repeat_res: bool = await user_repeat_normal(session, _tmp_decrypted_uid)
         if not user_repeat_res: return StandardBusinessEnum.FAIL
         else: return StandardBusinessEnum.SUCCESS
 
