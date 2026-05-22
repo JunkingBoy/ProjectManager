@@ -27,6 +27,11 @@ def is_valid_username(s: str) -> bool:
     pattern: str = r"^[\u4e00-\u9fa5a-zA-Z0-9]+$"
     return bool(re.match(pattern, s))
 
+def ts_to_datetime_or_zero(ts: float) -> datetime | int:
+    """时间戳转datetime, >=当前时间返回datetime, 否则返回0"""
+    dt: datetime = datetime.fromtimestamp(ts)
+    return dt if dt >= datetime.now() else 0
+
 def filling_random_chars(index: int, s: str) -> str:
     if not s: return ""
     else:

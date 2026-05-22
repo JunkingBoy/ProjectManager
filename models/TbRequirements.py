@@ -149,12 +149,12 @@ class Requirements(BaseModel):
         nullable=True,
         comment="需求业务测试单价"
     ))
-    release_time: Column[datetime] = Column(
+    release_time: datetime = cast(datetime, Column(
         DateTime(timezone=False),
         default=None,
         nullable=True,
         comment="需求发布时间"
-    )
+    ))
     c_time: Column[datetime] = Column(
         DateTime(timezone=False),
         default=lambda: datetime.now(tz=UTCTime),
@@ -177,8 +177,20 @@ class Requirements(BaseModel):
         self.description: str = data.desc
         self.source: int = data.source.value
         self.status: int = data.status.value
+        self.priority: int = data.priority
+        self.system: str = data.system
+        self.project: str = data.project
+        self.project_type: str = data.project_type
         self.person: str = data.person
         self.relevant: str = data.relevant
+        self.total: str = data.total
+        self.develop_total: str = data.dev_total
+        self.develop_price: str = data.dev_price
+        self.test_total: str = data.test_total
+        self.test_price: str = data.test_price
+        self.business_test_total: str = data.business_test_total
+        self.business_test_price: str = data.business_test_price
+        self.release_time = data.release_time
 
     @property
     def info(self) -> dict: return deepcopy(self.__dict__)
