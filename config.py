@@ -10,6 +10,7 @@ from routers.Key import key
 from routers.User import user
 from routers.Dict import dict
 
+from tools.Files import create_dir
 from utils.Logs import ExceptionLog
 from utils.Excptions import DivExcep
 from adapters.NoSql import NoSQLAdapter
@@ -58,6 +59,8 @@ async def lifespan(app: FastAPI):
         # 初始化 NoSQL 存储并挂载
         nosql_pool: StandardNoSQLPool = await init_nosql_storage()
         app.state.nosql_pool = nosql_pool
+        # 创建下载文件存储目录
+        create_dir('downloads')
         yield
     except Exception as exc:
         e.error(str(exc))
