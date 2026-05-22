@@ -103,7 +103,6 @@ async def requirement_list_info(
                 req_id=req.requirement_id,
                 number=req.number,
                 title=req.title,
-                desc=req.description,
                 status=req.status,
                 priority=req.priority,
                 system=req.system,

@@ -26,7 +26,6 @@ class StandardRequirementsInfoTemplate:
     req_id: str
     number: str # 需求编号
     title: str
-    desc: str
     status: int
     priority: int
     system: str
