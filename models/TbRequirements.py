@@ -94,7 +94,7 @@ class Requirements(BaseModel):
         comment="需求处理人"
     ))
     relevant: str = cast(str, Column(
-        Text,
+        String(32),
         unique=False,
         index=False,
         nullable=True,
