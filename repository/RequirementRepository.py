@@ -40,22 +40,27 @@ async def requirement_create(
 async def confirm_user_doc_relation(
     session: AsyncSession,
     decrypted_uid: str,
-    decrypted_requirement_id: str,
-    decrypted_related_doc_id: str
+    decrypted_related_doc_id: str,
+    decrypted_requirement_id: str | None = None
 ) -> StandardBusinessEnum:
     e: ExceptionLog = ExceptionLog.get_instance()
     try:
-        stmt: Select = select(Requirements).where(
-            and_(
-                Requirements.requirement_id == decrypted_requirement_id, # type: ignore
-                or_(
-                    Requirements.person == decrypted_uid,   # type: ignore
-                    Requirements.relevant == decrypted_uid  # type: ignore
-                ),
-                Requirements.related_doc == decrypted_related_doc_id,  # type: ignore
-                Requirements.status != StandardReqStatusEnum.CANCEL.value  # type: ignore
+        conditions: list = [
+            Requirements.related_doc == decrypted_related_doc_id,  # type: ignore
+            Requirements.status != StandardReqStatusEnum.CANCEL.value  # type: ignore
+        ]
+        if not decrypted_requirement_id: conditions.append(Requirements.person == decrypted_uid)  # type: ignore
+        else:
+            conditions.append(
+                and_(
+                    Requirements.requirement_id == decrypted_requirement_id, # type: ignore
+                    or_(
+                        Requirements.person == decrypted_uid,   # type: ignore
+                        Requirements.relevant == decrypted_uid  # type: ignore
+                    )
+                )
             )
-        )
+        stmt: Select = select(Requirements).where(and_(*conditions))
         sql_res: Result = await session.execute(stmt)
         data = sql_res.scalar_one_or_none()
         if data: return StandardBusinessEnum.SUCCESS

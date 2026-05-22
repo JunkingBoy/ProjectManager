@@ -89,8 +89,8 @@ async def requirement_file_download(
             _is_exist: StandardBusinessEnum = await confirm_user_doc_relation(
                 session,
                 _tmp_uid,
-                _tmp_requirement_id,
-                _tmp_related_doc_id
+                _tmp_related_doc_id,
+                _tmp_requirement_id
             )
             if _is_exist != StandardBusinessEnum.SUCCESS: return (StandardBusinessEnum.FAIL.value[0], "您所下载的文件和您的关系不正确")
             _file_path: str = search_download_file("downloads", _tmp_related_doc_id)
