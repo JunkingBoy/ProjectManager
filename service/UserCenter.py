@@ -164,4 +164,4 @@ async def user_person_info(
         async with db_pool.get_session() as session:
             info: tuple = await user_info(session, decrypted_uid)
             if StandardBusinessEnum.FAIL == info[0]: return info[0].value[0], "用户信息获取失败"
-            return StandardBusinessEnum.SUCCESS.value[0], "用户信息获取成功", info[1]
+            return (StandardBusinessEnum.SUCCESS.value[0], "用户信息获取成功", {"username": info[1]})
