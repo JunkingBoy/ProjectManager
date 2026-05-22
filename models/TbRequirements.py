@@ -101,7 +101,7 @@ class Requirements(BaseModel):
         comment="需求负责技术经理"
     ))
     related_doc: str = cast(str, Column(
-        String(32),
+        String(256),
         unique=False,
         index=False,
         nullable=True,
