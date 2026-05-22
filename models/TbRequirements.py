@@ -191,6 +191,7 @@ class Requirements(BaseModel):
         self.project_type: str = data.project_type
         self.person: str = data.person
         self.relevant: str = data.relevant
+        self.related_doc: str = data.related_doc
         self.total: str = data.total
         self.develop_total: str = data.dev_total
         self.develop_price: str = data.dev_price
