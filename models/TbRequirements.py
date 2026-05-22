@@ -100,6 +100,13 @@ class Requirements(BaseModel):
         nullable=True,
         comment="需求负责技术经理"
     ))
+    related_doc: str = cast(str, Column(
+        String(32),
+        unique=False,
+        index=False,
+        nullable=True,
+        comment="需求关联文档,只记录文档唯一标识"
+    ))
     total: str = cast(str, Column(
         String(128),
         unique=False,
@@ -172,12 +179,13 @@ class Requirements(BaseModel):
         self,
         data: TbRequirementsTemplate # 修改模型字段
     ) -> None:
+        self.requirement_id: str = data.req_id
         self.number: str = data.number
         self.title: str = data.title
         self.description: str = data.desc
         self.source: int = data.source.value
         self.status: int = data.status.value
-        self.priority: int = data.priority
+        self.priority: int = data.priority.value
         self.system: str = data.system
         self.project: str = data.project
         self.project_type: str = data.project_type
