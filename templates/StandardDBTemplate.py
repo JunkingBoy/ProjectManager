@@ -47,7 +47,8 @@ class TbRequirementsTemplate:
     test_price: str
     business_test_total: str
     business_test_price: str
-    release_time: datetime            # 计划发布时间     
+    release_time: datetime            # 计划发布时间
+    remark: str = ""
 
     @property
     def info(self) -> dict: return deepcopy(self.__dict__)

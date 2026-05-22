@@ -162,6 +162,13 @@ class Requirements(BaseModel):
         nullable=True,
         comment="需求发布时间"
     ))
+    remark: str = cast(str, Column(
+        Text,
+        unique=False,
+        index=False,
+        nullable=True,
+        comment="需求备注"
+    ))
     c_time: Column[datetime] = Column(
         DateTime(timezone=False),
         default=lambda: datetime.now(tz=UTCTime),
@@ -200,6 +207,7 @@ class Requirements(BaseModel):
         self.business_test_total: str = data.business_test_total
         self.business_test_price: str = data.business_test_price
         self.release_time = data.release_time
+        self.remark: str = data.remark
 
     @property
     def info(self) -> dict: return deepcopy(self.__dict__)
