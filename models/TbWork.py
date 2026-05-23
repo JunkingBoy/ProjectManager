@@ -112,6 +112,7 @@ class TasksPool(BaseModel):
         self.task_id: str = data.task_id
         self.requirement_id: str = data.req_id
         self.terminal: int = data.terminal.value
+        self.title: str = data.title
         self.description: str = data.desc
         self.develop_total: str = data.dev_total
         self.status: int = data.status.value
