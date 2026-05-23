@@ -55,3 +55,13 @@ class BugAdd(CoreModel):
         valid_values: set = {item.value for item in StandardBugStatusEnum}
         if v not in valid_values: raise ValueError('非法Bug状态')
         return v
+
+class BugQuery(CoreModel):
+    model_config = ConfigDict(from_attributes=True, extra='forbid')
+
+    req_id: str | None = None
+    task_id: str | None = None
+    status: int | None = None
+    creator: str | None = None
+    owner: str | None = None
+    developer: str | None = None

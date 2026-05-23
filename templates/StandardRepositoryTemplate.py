@@ -97,3 +97,22 @@ class StandardTasksListInfoTemplate:
 
     @property
     def info(self) -> dict: return self.__dict__.copy()
+
+
+@dataclass
+class StandardBugListInfoTemplate:
+    bug_id: str
+    req_id: str
+    task_id: str
+    title: str
+    desc: str
+    expected_res: str
+    status: int
+    creator: str
+    owner: str
+    developer: str
+    c_time: int
+    u_time: int
+
+    @property
+    def info(self) -> dict: return self.__dict__.copy()

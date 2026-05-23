@@ -1,10 +1,15 @@
+from sqlalchemy.sql import Select
+from sqlalchemy.engine import Result
+from sqlalchemy import select, and_, or_
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from models.TbUser import User
 from models.TbBug import TbBugsPool
 from utils.Logs import ExceptionLog
 from utils.Excptions import DivExcep
 from templates.StandardDBTemplate import TbBugsPoolTemplate
+from templates.StandardRepositoryTemplate import StandardBugListInfoTemplate
 from enums.StandardBusEnum import StandardBusinessEnum
 
 async def bug_create(
@@ -31,4 +36,70 @@ async def bug_create(
         raise DivExcep(
             code=StandardBusinessEnum.FAIL.value[0],
             msg="Bug创建失败"
+        )
+
+async def bug_list(
+    session: AsyncSession,
+    decrypted_uid: str | None,
+    decrypted_req_id: str | None,
+    decrypted_owner: str | None,
+    status: int | None
+) -> list:
+    e: ExceptionLog = ExceptionLog.get_instance()
+    try:
+        conditions: list = []
+        if decrypted_uid is not None:
+            conditions.append(
+                or_(TbBugsPool.creator == decrypted_uid, TbBugsPool.owner == decrypted_uid)  # type: ignore
+            )
+        if decrypted_req_id is not None:
+            conditions.append(TbBugsPool.requirement_id == decrypted_req_id)  # type: ignore
+        if decrypted_owner is not None:
+            conditions.append(TbBugsPool.owner == decrypted_owner)  # type: ignore
+        if status is not None:
+            conditions.append(TbBugsPool.status == status)  # type: ignore
+        stmt: Select = select(TbBugsPool)
+        if conditions: stmt = stmt.where(and_(*conditions))
+        sql_res: Result = await session.execute(stmt)
+        bug_list = sql_res.scalars().all()
+        uid_set: set = set()
+        for bug in bug_list:
+            if bug.creator: uid_set.add(bug.creator)
+            if bug.owner: uid_set.add(bug.owner)
+            if bug.developer: uid_set.add(bug.developer)
+        if not uid_set: user_map = {}
+        else:
+            user_stmt: Select = select(User.uid, User.username).where(  # type: ignore
+                User.uid.in_(uid_set)  # type: ignore
+            )
+            user_res: Result = await session.execute(user_stmt)
+            user_map: dict = {row.uid: row.username for row in user_res}
+        result: list = [
+            StandardBugListInfoTemplate(
+                bug_id=bug.bug_id,
+                req_id=bug.requirement_id,
+                task_id=bug.task_id or "",
+                title=bug.title,
+                desc=bug.description or "",
+                expected_res=bug.expected_res or "",
+                status=bug.status,
+                creator=user_map.get(bug.creator, bug.creator or ""),
+                owner=user_map.get(bug.owner, bug.owner or ""),
+                developer=user_map.get(bug.developer, bug.developer or ""),
+                c_time=int(bug.c_time.timestamp()) if bug.c_time else 0,
+                u_time=int(bug.u_time.timestamp()) if bug.u_time else 0,
+            ) for bug in bug_list
+        ]
+        return result
+    except SQLAlchemyError as sql_e:
+        e.error(f"Bug列表查询异常{sql_e}")
+        raise DivExcep(
+            code=StandardBusinessEnum.FAIL.value[0],
+            msg="Bug列表查询异常"
+        )
+    except Exception as err:
+        e.error(f"Bug列表查询失败{err}")
+        raise DivExcep(
+            code=StandardBusinessEnum.FAIL.value[0],
+            msg="Bug列表查询失败"
         )

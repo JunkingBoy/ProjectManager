@@ -81,6 +81,7 @@ class TbBugsPoolTemplate:
     creator: str
     owner: str
     developer: str
+    u_time: datetime | None = None
 
     @property
     def info(self) -> dict: return deepcopy(self.__dict__)
