@@ -15,10 +15,11 @@ from repository.RequirementRepository import (
     confirm_user_doc_relation,
     requirement_list_info,
     requirement_detail_info,
+    requirement_task_list_info,
     requirement_mod,
     requirement_file_relationship_mod
 )
-from templates.StandardRepositoryTemplate import StandardRequirementsDetailTemplate, StandardRequirementsModifyTemplate
+from templates.StandardRepositoryTemplate import StandardRequirementsDetailTemplate, StandardRequirementsModifyTemplate, StandardRequirementsTasksInfoTemplate
 from enums.StandardBusEnum import StandardBusinessEnum, StandardReqSourceEnum, StandardReqStatusEnum, StandardReqPriorityEnum
 
 async def requirement_add(
@@ -162,6 +163,24 @@ async def requirement_file_modify(
             )
             if _res != StandardBusinessEnum.SUCCESS: return (StandardBusinessEnum.FAIL.value[0], "关联文档修改失败")
             return (StandardBusinessEnum.SUCCESS.value[0], "关联文档修改成功")
+
+async def requirement_tasks_list(
+    r: Request,
+    decrypted_uid: str
+) -> tuple:
+    u_platform: Optional[str] = r.headers.get("sec-ch-ua-platform")
+    if not u_platform: return (StandardBusinessEnum.FAIL.value[0], "请求头校验失败")
+    else:
+        db_pool: StandardSQLiteDBConnectPool = r.app.state.db_pool
+        async with db_pool.get_session() as session:
+            raw_data: list = await requirement_task_list_info(session, decrypted_uid)
+            result: list = []
+            for item in raw_data:
+                d: dict = item.info
+                d["req_id"] = await encrypt(item.req_id)
+                d["related_doc"] = await encrypt(item.related_doc)
+                result.append(d)
+            return (StandardBusinessEnum.SUCCESS.value[0], "查询成功", result)
 
 async def requirement_list(
     r: Request
