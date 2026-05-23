@@ -176,7 +176,6 @@ async def get_requirement_detail(
         code=res[0], msg=res[1], data=res[2] if len(res) > 2 else None, path=None
     ).info)
 
-
 @requirement.put("/modify")
 async def modify_requirement(
     r: Request,
