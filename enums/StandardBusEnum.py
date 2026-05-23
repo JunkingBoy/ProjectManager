@@ -71,11 +71,11 @@ class StandardDevTasksStatusEnum(Enum):
     '''
     研发任务池状态机枚举
     '''
-    DESIGN = 1
-    DEVELOP = 2
-    FINISH = 3
-    TEST = 4
-    CANCEL = 5
+    WAIT = 0
+    PROGRESS = 1
+    FINISH = 2
+    BUG = 3
+    CLOSE = 4
 
 class StandardTaskTerminalEnum(Enum):
     '''
