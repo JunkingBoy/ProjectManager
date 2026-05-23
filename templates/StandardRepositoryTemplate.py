@@ -79,3 +79,20 @@ class StandardRequirementsModifyTemplate:
 
     @property
     def info(self) -> dict: return self.__dict__.copy()
+
+@dataclass
+class StandardTasksListInfoTemplate:
+    task_id: str | None
+    req_id: str | None
+    terminal: int
+    title: str
+    desc: str
+    dev_total: str
+    status: int
+    creator: str
+    owner: str
+    remark: str
+    end_time: int
+
+    @property
+    def info(self) -> dict: return self.__dict__.copy()
