@@ -105,10 +105,10 @@ class TbBugsPool(BaseModel):
     ) -> None:
         self.bug_id: str = data.bug_id
         self.requirement_id: str = data.req_id
-        self.point_id: str = data.point_id
-        self.test_task_id: str = data.test_task_id
+        self.task_id: str = data.task_id
         self.title: str = data.title
         self.description: str = data.desc
+        self.expected_res: str = data.expected_res
         self.status: int = data.status.value
         self.creator: str = data.creator
         self.owner: str = data.owner

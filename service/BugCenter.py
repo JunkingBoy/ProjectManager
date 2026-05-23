@@ -1,0 +1,36 @@
+from typing import Optional
+from fastapi import Request
+
+from tools.Re import generate_uid
+from utils.Encry import decrypt
+from utils.Pool import StandardSQLiteDBConnectPool
+from repository.BugRepository import bug_create
+from templates.StandardDBTemplate import TbBugsPoolTemplate
+from enums.StandardBusEnum import StandardBusinessEnum, StandardBugStatusEnum
+from dantics.BugDantic import BugAdd
+
+async def bug_add(
+    r: Request,
+    data: BugAdd,
+    decrypted_uid: str,
+) -> tuple:
+    u_platform: Optional[str] = r.headers.get("sec-ch-ua-platform")
+    if not u_platform: return (StandardBusinessEnum.FAIL.value[0], "请求头校验失败")
+    else:
+        db_pool: StandardSQLiteDBConnectPool = r.app.state.db_pool
+        async with db_pool.get_session() as session:
+            bug_template: TbBugsPoolTemplate = TbBugsPoolTemplate(
+                bug_id=generate_uid(),
+                req_id=await decrypt(data.req_id),
+                task_id=await decrypt(data.task_id) if data.task_id else "",
+                title=data.title,
+                desc=data.desc,
+                expected_res=data.expected_res,
+                status=StandardBugStatusEnum(data.status),
+                creator=decrypted_uid,
+                owner=await decrypt(data.owner) if data.owner else "",
+                developer=await decrypt(data.developer) if data.developer else "",
+            )
+            _res: StandardBusinessEnum = await bug_create(session, bug_template)
+            if _res != StandardBusinessEnum.SUCCESS: return (StandardBusinessEnum.FAIL.value[0], "Bug创建失败")
+            return (StandardBusinessEnum.SUCCESS.value[0], "Bug创建成功")

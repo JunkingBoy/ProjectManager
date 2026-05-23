@@ -73,10 +73,10 @@ class TbDevelopTasksPoolTmplate:
 class TbBugsPoolTemplate:
     bug_id: str
     req_id: str
-    point_id: str
-    test_task_id: str
+    task_id: str
     title: str
     desc: str
+    expected_res: str
     status: StandardBugStatusEnum
     creator: str
     owner: str

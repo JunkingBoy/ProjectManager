@@ -12,6 +12,7 @@ from routers.User import user
 from routers.Dict import dict
 from routers.Task import task
 from routers.Requirement import requirement
+from routers.Bug import bug
 
 from tools.Files import create_dir
 from utils.Logs import ExceptionLog
@@ -52,7 +53,7 @@ async def init_nosql_storage() -> StandardNoSQLPool:
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     e: ExceptionLog = ExceptionLog()
-    routers: list = [user, key, dict, requirement, task]
+    routers: list = [user, key, dict, requirement, task, bug]
     for router in routers: app.include_router(router)
     try:
         # 创建数据库连接池和初始化表
