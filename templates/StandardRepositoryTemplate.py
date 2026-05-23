@@ -93,6 +93,7 @@ class StandardTasksListInfoTemplate:
     owner: str
     remark: str
     end_time: int
+    update_time: int
 
     @property
     def info(self) -> dict: return self.__dict__.copy()
