@@ -29,7 +29,6 @@ async def add_bug(
             code=add_res[0], msg=add_res[1], data=None, path=None
         ).info)
 
-
 @bug.get("/list")
 async def get_bug_list(
     r: Request,

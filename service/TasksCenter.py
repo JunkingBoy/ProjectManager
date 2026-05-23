@@ -8,7 +8,8 @@ from utils.Encry import decrypt, encrypt
 from utils.Pool import StandardSQLiteDBConnectPool
 from repository.UserRepository import user_repeat_normal
 from dantics.TasksDantic import TasksAdd, TaskStatusChange, TaskTransferOwner
-from repository.TaskRepository import tasks_create, tasks_about_requirement_list, tasks_about_user_by_status_list, tasks_status_change, tasks_transfer_owner
+from repository.TaskRepository import tasks_create, task_list, tasks_status_change, tasks_transfer_owner
+from models.TbWork import TasksPool
 
 from templates.StandardDBTemplate import TbDevelopTasksPoolTmplate
 from enums.StandardBusEnum import StandardBusinessEnum, StandardTaskTerminalEnum, StandardDevTasksStatusEnum
@@ -68,7 +69,7 @@ async def task_about_requirement_list(
         db_pool: StandardSQLiteDBConnectPool = r.app.state.db_pool
         async with db_pool.get_session() as session:
             _decrypted_requirement_id: str = await decrypt(encrypted_requirement_id)
-            raw_data: list = await tasks_about_requirement_list(session, _decrypted_requirement_id)
+            raw_data: list = await task_list(session, {"requirement_id": _decrypted_requirement_id})
             result: list = []
             for item in raw_data:
                 d: dict = item.info
@@ -87,7 +88,7 @@ async def task_about_user_by_status_list(
     else:
         db_pool: StandardSQLiteDBConnectPool = r.app.state.db_pool
         async with db_pool.get_session() as session:
-            raw_data: list = await tasks_about_user_by_status_list(session, decrypted_uid, status)
+            raw_data: list = await task_list(session, {"owner": decrypted_uid, "status": status}, order_by_column=TasksPool.end_time.desc())  # type: ignore
             result: list = []
             for item in raw_data:
                 d: dict = item.info

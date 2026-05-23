@@ -35,7 +35,6 @@ async def bug_add(
             if _res != StandardBusinessEnum.SUCCESS: return (StandardBusinessEnum.FAIL.value[0], "Bug创建失败")
             return (StandardBusinessEnum.SUCCESS.value[0], "Bug创建成功")
 
-
 async def bug_list(
     r: Request,
     decrypted_uid: str,
@@ -53,7 +52,9 @@ async def bug_list(
                 decrypted_uid,
                 _req_id,
                 _owner,
-                data.status
+                data.status,
+                data.filter_self_created,
+                data.filter_self_assigned,
             )
             result: list = []
             for item in raw_data:
