@@ -19,7 +19,7 @@ from repository.RequirementRepository import (
     requirement_mod,
     requirement_file_relationship_mod
 )
-from templates.StandardRepositoryTemplate import StandardRequirementsDetailTemplate, StandardRequirementsModifyTemplate, StandardRequirementsTasksInfoTemplate
+from templates.StandardRepositoryTemplate import StandardRequirementsDetailTemplate, StandardRequirementsModifyTemplate
 from enums.StandardBusEnum import StandardBusinessEnum, StandardReqSourceEnum, StandardReqStatusEnum, StandardReqPriorityEnum
 
 async def requirement_add(
