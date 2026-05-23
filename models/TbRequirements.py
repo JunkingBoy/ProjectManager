@@ -160,7 +160,7 @@ class Requirements(BaseModel):
         DateTime(timezone=False),
         default=None,
         nullable=True,
-        comment="需求发布时间"
+        comment="需求计划发布时间"
     ))
     remark: str = cast(str, Column(
         Text,
