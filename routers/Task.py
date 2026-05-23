@@ -6,13 +6,13 @@ from fastapi.responses import JSONResponse
 from depends.Auth import authentication
 from enums.StandardBusEnum import StandardBusinessEnum
 from templates.StandardResTemplate import StandardResponse
-from dantics.TasksDantic import TasksAdd, RequirementTask, TaskStatusChange, TaskTransferOwner
+from dantics.TasksDantic import TasksAdd, RequirementTask, TaskStatusChange, TaskTransferOwner, TaskStatus
 from service.TasksCenter import (
     task_terminal_list,
     task_status_list,
     task_add,
     task_about_requirement_list,
-    task_about_user_by_wait_list,
+    task_about_user_by_status_list,
     task_status_change,
     task_transfer_owner,
 )
@@ -75,13 +75,14 @@ async def get_task_about_requirement(
 @task.get("/user/status")
 async def get_user_status_tasks(
     r: Request,
+    data: TaskStatus = Depends(),
     success_auth: tuple = Depends(authentication)
 ) -> JSONResponse:
     if success_auth[0] != StandardBusinessEnum.SUCCESS.value[0]:
         return JSONResponse(status_code=200, content=StandardResponse(
             code=success_auth[0], msg=success_auth[1], data=None, path=None
         ).info)
-    res: tuple = await task_about_user_by_wait_list(r, success_auth[1])
+    res: tuple = await task_about_user_by_status_list(r, data.status, success_auth[1])
     return JSONResponse(status_code=200, content=StandardResponse(
         code=res[0], msg=res[1], data=res[2] if len(res) > 2 else None, path=None
     ).info)

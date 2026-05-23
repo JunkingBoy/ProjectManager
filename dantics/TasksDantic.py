@@ -88,6 +88,21 @@ class RequirementTask(CoreModel):
         description="需求ID加密值"
     )]
 
+class TaskStatus(CoreModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    status: Annotated[int, Field(
+        ...,
+        description="任务状态"
+    )]
+
+    @field_validator('status')
+    @classmethod
+    def validate_status(cls, v: int) -> int:
+        valid_values: set = {item.value for item in StandardDevTasksStatusEnum}
+        if v not in valid_values: raise ValueError('非法任务状态')
+        return v
+
 class TaskStatusChange(CoreModel):
     model_config = ConfigDict(from_attributes=True)
 

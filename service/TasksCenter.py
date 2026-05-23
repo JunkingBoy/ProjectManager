@@ -78,8 +78,9 @@ async def task_about_requirement_list(
                 result.append(d)
             return (StandardBusinessEnum.SUCCESS.value[0], "查询成功", result)
 
-async def task_about_user_by_wait_list(
+async def task_about_user_by_status_list(
     r: Request,
+    status: int,
     decrypted_uid: str
 ) -> tuple:
     u_platform: Optional[str] = r.headers.get("sec-ch-ua-platform")
