@@ -176,7 +176,6 @@ async def get_requirement_tasks(
         code=res[0], msg=res[1], data=res[2] if len(res) > 2 else None, path=None
     ).info)
 
-
 @requirement.get("/detail")
 async def get_requirement_detail(
     r: Request,
