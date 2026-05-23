@@ -3,7 +3,7 @@ import uuid
 import string
 import secrets
 
-from datetime import datetime
+from datetime import datetime, date
 
 def generate_aes_params() -> bytes: return secrets.token_bytes(16) # 返回16字节的初始化向量
 def generate_uid() -> str: return uuid.uuid4().hex
@@ -28,9 +28,9 @@ def is_valid_username(s: str) -> bool:
     return bool(re.match(pattern, s))
 
 def ts_to_datetime_or_zero(ts: float) -> datetime | int:
-    """时间戳转datetime, >=当前时间返回datetime, 否则返回0"""
+    """时间戳转datetime, 日期<今天返回0, 否则返回datetime"""
     dt: datetime = datetime.fromtimestamp(ts)
-    return dt if dt >= datetime.now() else 0
+    return 0 if dt.date() < date.today() else dt
 
 def filling_random_chars(index: int, s: str) -> str:
     if not s: return ""
