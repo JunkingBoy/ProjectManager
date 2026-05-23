@@ -54,20 +54,6 @@ class TbRequirementsTemplate:
     def info(self) -> dict: return deepcopy(self.__dict__)
 
 @dataclass
-class TbPointTemplate:
-    point_id: str
-    requirement_id: str
-    title: str
-    desc: str
-    status: StandardPointStatusEnum
-    creator: str
-    developer: str
-    qa: str
-
-    @property
-    def info(self) -> dict: return deepcopy(self.__dict__)
-
-@dataclass
 class TbDevelopTasksPoolTmplate:
     task_id: str
     req_id: str
