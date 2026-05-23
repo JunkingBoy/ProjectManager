@@ -105,7 +105,7 @@ async def tasks_about_user_by_status_list(
                 TasksPool.owner == decrypted_uid,  # type: ignore
                 TasksPool.status == status  # type: ignore
             )
-        )
+        ).order_by(TasksPool.end_time.desc())  # type: ignore
         sql_res: Result = await session.execute(stmt)
         task_list = sql_res.scalars().all()
         # 收集所有 creator/owner ID 并批量查询用户名
