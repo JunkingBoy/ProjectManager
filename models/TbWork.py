@@ -37,6 +37,13 @@ class TasksPool(BaseModel):
         nullable=True, # 考虑任务终端表
         comment="任务终端,0后台1安卓2IOS3鸿蒙4小程序5H5"
     ))
+    title: str = cast(str, Column(
+        String(128),
+        unique=False,
+        index=True,
+        nullable=False,
+        comment="任务标题"
+    ))
     description: str = cast(str, Column(
         Text,
         unique=False,

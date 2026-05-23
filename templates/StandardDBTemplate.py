@@ -57,6 +57,7 @@ class TbDevelopTasksPoolTmplate:
     task_id: str
     req_id: str
     terminal: StandardTaskTerminalEnum
+    title: str
     desc: str
     dev_total: str
     status: StandardDevTasksStatusEnum
