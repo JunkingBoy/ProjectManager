@@ -104,6 +104,7 @@ async def requirement_list_info(
                 system=req.system,
                 person=person_map.get(req.person, req.person or ""),
                 related_doc=req.related_doc or "",
+                release_time=int(req.release_time.timestamp()) if req.release_time else 0,
                 req_dev_tasks_count=0,
                 req_dev_tasks_done_count=0,
                 req_bug_count=0,
