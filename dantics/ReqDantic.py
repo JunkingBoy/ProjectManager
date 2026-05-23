@@ -218,10 +218,24 @@ class RequirementModify(CoreModel):
         max_length=256,
         description="需求备注"
     )]
+    release_time: Annotated[str, Field(
+        ...,
+        min_length=1,
+        max_length=128,
+        description="需求计划发布时间,格式为秒级时间戳"
+    )]
 
     @field_validator('priority')
     @classmethod
     def validate_priority(cls, v: int) -> int:
         valid_values: set = {item.value for item in StandardReqPriorityEnum}
         if v not in valid_values: raise ValueError('非法优先级')
+        return v
+
+    @field_validator('release_time')
+    @classmethod
+    def validate_release_time(cls, v: str) -> str:
+        try: ts: float = float(v)
+        except ValueError: raise ValueError(f'"{v}" 为无效时间戳')
+        if ts_to_datetime_or_zero(ts) == 0: raise ValueError('非法时间')
         return v

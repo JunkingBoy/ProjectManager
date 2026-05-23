@@ -50,6 +50,7 @@ class StandardRequirementsDetailTemplate:
     priority: int
     system: str
     desc: str
+    release_time: int
     related_doc: str
     remark: str
 

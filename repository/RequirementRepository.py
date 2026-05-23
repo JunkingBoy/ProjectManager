@@ -192,6 +192,7 @@ async def requirement_detail_info(
             priority=req.priority,
             system=req.system,
             desc=req.description or "",
+            release_time=int(req.release_time.timestamp()) if req.release_time else 0,
             related_doc=req.related_doc or "",
             remark=req.remark or "",
         )
