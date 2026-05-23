@@ -151,7 +151,7 @@ async def requirement_file_modify(
             _is_exist: StandardBusinessEnum = await confirm_user_doc_relation(
                 session,
                 decrypted_uid,
-                _decrypted_related_doc_id,
+                None,
                 _decrypted_requirement_id
             )
             if _is_exist != StandardBusinessEnum.SUCCESS: return (StandardBusinessEnum.FAIL.value[0], "您不可操作该需求")

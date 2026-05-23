@@ -21,7 +21,7 @@ class CoreModel(BaseModel):
         log_errors: list = []
         for error in e.errors():
             res_errors.append({
-                "param": error["loc"][0] if isinstance(e, ValidationError) else error["loc"][1],
+                "param": error["loc"][-1],
                 "msg": StandardGlobalErrEnum.get_msg_by_type(error["type"]) if StandardGlobalErrEnum.get_msg_by_type(error["type"]) else error["msg"],
             })
             log_errors.append({

@@ -42,25 +42,21 @@ async def requirement_create(
 async def confirm_user_doc_relation(
     session: AsyncSession,
     decrypted_uid: str,
-    decrypted_related_doc_id: str,
+    decrypted_related_doc_id: str | None = None,
     decrypted_requirement_id: str | None = None
 ) -> StandardBusinessEnum:
     e: ExceptionLog = ExceptionLog.get_instance()
     try:
         conditions: list = [
-            Requirements.related_doc == decrypted_related_doc_id,  # type: ignore
-        ]
-        if not decrypted_requirement_id: conditions.append(Requirements.person == decrypted_uid)  # type: ignore
-        else:
-            conditions.append(
-                and_(
-                    Requirements.requirement_id == decrypted_requirement_id, # type: ignore
-                    or_(
-                        Requirements.person == decrypted_uid,   # type: ignore
-                        Requirements.relevant == decrypted_uid  # type: ignore
-                    )
-                )
+            or_(
+                Requirements.person == decrypted_uid,    # type: ignore
+                Requirements.relevant == decrypted_uid   # type: ignore
             )
+        ]
+        if decrypted_related_doc_id is not None:
+            conditions.append(Requirements.related_doc == decrypted_related_doc_id)  # type: ignore
+        if decrypted_requirement_id is not None:
+            conditions.append(Requirements.requirement_id == decrypted_requirement_id)  # type: ignore
         stmt: Select = select(Requirements).where(and_(*conditions))
         sql_res: Result = await session.execute(stmt)
         data = sql_res.scalar_one_or_none()
