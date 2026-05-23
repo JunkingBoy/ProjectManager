@@ -11,7 +11,7 @@ from utils.Excptions import DivExcep
 from models.TbRequirements import Requirements
 from templates.StandardDBTemplate import TbRequirementsTemplate
 from enums.StandardBusEnum import StandardBusinessEnum, StandardReqStatusEnum
-from templates.StandardRepositoryTemplate import StandardRequirementsInfoTemplate, StandardRequirementsDetailTemplate, StandardRequirementsModifyTemplate
+from templates.StandardRepositoryTemplate import StandardRequirementsInfoTemplate, StandardRequirementsDetailTemplate, StandardRequirementsModifyTemplate, StandardRequirementsTasksInfoTemplate
 
 async def requirement_create(
     session: AsyncSession,
@@ -125,6 +125,51 @@ async def requirement_list_info(
         raise DivExcep(
             code=StandardBusinessEnum.FAIL.value[0],
             msg="需求列表查询失败"
+        )
+
+async def requirement_task_list_info(
+    session: AsyncSession,
+    decrypted_uid: str
+) -> list:
+    e: ExceptionLog = ExceptionLog.get_instance()
+    try:
+        stmt: Select = select(Requirements).where(
+            Requirements.relevant == decrypted_uid,  # type: ignore
+            Requirements.status != StandardReqStatusEnum.RELEASED.value # type: ignore
+        )
+        sql_res: Result = await session.execute(stmt)
+        req_list = sql_res.scalars().all()
+        # 收集所有 person ID 并批量查询用户名
+        person_ids: set = {req.person for req in req_list if req.person}
+        if not person_ids: person_map = {}
+        else:
+            user_stmt: Select = select(User.uid, User.username).where( # type: ignore
+                User.uid.in_(person_ids)  # type: ignore
+            )
+            user_res: Result = await session.execute(user_stmt)
+            person_map: dict = {row.uid: row.username for row in user_res}
+        result: list = [
+            StandardRequirementsTasksInfoTemplate(
+                req_id=req.requirement_id,
+                number=req.number,
+                title=req.title,
+                person=person_map.get(req.person, req.person or ""),
+                related_doc=req.related_doc or "",
+                release_time=int(req.release_time.timestamp()) if req.release_time else 0,
+            ) for req in req_list
+        ]
+        return result
+    except SQLAlchemyError as sql_e:
+        e.error(f"需求任务列表查询异常{sql_e}")
+        raise DivExcep(
+            code=StandardBusinessEnum.FAIL.value[0],
+            msg="需求任务列表查询异常"
+        )
+    except Exception as err:
+        e.error(f"需求任务列表查询失败{err}")
+        raise DivExcep(
+            code=StandardBusinessEnum.FAIL.value[0],
+            msg="需求任务列表查询失败"
         )
 
 async def requirement_mod(
