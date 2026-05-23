@@ -77,3 +77,13 @@ class TasksAdd(CoreModel):
         try: float(v)
         except ValueError: raise ValueError(f'"{v}" 为非法浮点字符串')
         return v
+
+class RequirementTask(CoreModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    req_id: Annotated[str, Field(
+        ...,
+        min_length=1,
+        max_length=256,
+        description="需求ID加密值"
+    )]

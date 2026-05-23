@@ -8,7 +8,7 @@ from dantics.TasksDantic import TasksAdd
 from utils.Encry import decrypt, encrypt
 from utils.Pool import StandardSQLiteDBConnectPool
 from repository.UserRepository import user_repeat_normal
-from repository.TaskRepository import tasks_create
+from repository.TaskRepository import tasks_create, tasks_about_requirement_list
 from repository.RequirementRepository import requirement_create
 
 from templates.StandardDBTemplate import TbDevelopTasksPoolTmplate
@@ -58,4 +58,23 @@ async def task_add(
             _res: StandardBusinessEnum = await tasks_create(session, tasks_list)
             if _res != StandardBusinessEnum.SUCCESS: return (StandardBusinessEnum.FAIL.value[0], "任务创建失败")
             return (StandardBusinessEnum.SUCCESS.value[0], "任务创建成功")
+
+async def task_about_requirement_list(
+    r: Request,
+    encrypted_requirement_id: str
+) -> tuple:
+    u_platform: Optional[str] = r.headers.get("sec-ch-ua-platform")
+    if not u_platform: return (StandardBusinessEnum.FAIL.value[0], "请求头校验失败")
+    else:
+        db_pool: StandardSQLiteDBConnectPool = r.app.state.db_pool
+        async with db_pool.get_session() as session:
+            _decrypted_requirement_id: str = await decrypt(encrypted_requirement_id)
+            raw_data: list = await tasks_about_requirement_list(session, _decrypted_requirement_id)
+            result: list = []
+            for item in raw_data:
+                d: dict = item.info
+                d["task_id"] = await encrypt(item.task_id) if item.task_id else ""
+                d["req_id"] = await encrypt(item.req_id) if item.req_id else ""
+                result.append(d)
+            return (StandardBusinessEnum.SUCCESS.value[0], "查询成功", result)
 
