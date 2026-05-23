@@ -12,6 +12,7 @@ from service.RequirementCenter import (
     requirement_file_upload,
     requirement_file_download,
     requirement_file_delete,
+    requirement_file_modify,
     requirement_add,
     requirement_list,
     requirement_detail,
@@ -97,6 +98,22 @@ async def add_req_one(
         add_res: tuple = await requirement_add(r, data)
         return JSONResponse(status_code=200, content=StandardResponse(
             code=add_res[0], msg=add_res[1], data=None, path=None
+        ).info)
+
+@requirement.post("/related")
+async def add_req_related(
+    r: Request,
+    data: RequirementFileDownload,
+    success_auth: tuple = Depends(authentication)
+) -> JSONResponse:
+    if success_auth[0] != StandardBusinessEnum.SUCCESS.value[0]:
+        return JSONResponse(status_code=200, content=StandardResponse(
+            code=success_auth[0], msg=success_auth[1], data=None, path=None
+        ).info)
+    else:
+        mod_res: tuple = await requirement_file_modify(r, success_auth[1], data)
+        return JSONResponse(status_code=200, content=StandardResponse(
+            code=mod_res[0], msg=mod_res[1], data=None, path=None
         ).info)
 
 @requirement.get("/source")

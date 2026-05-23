@@ -210,3 +210,35 @@ async def requirement_detail_info(
             code=StandardBusinessEnum.FAIL.value[0],
             msg="需求详情查询失败"
         )
+
+async def requirement_file_mod(
+    session: AsyncSession,
+    decrypted_requirement_id: str,
+    decrypted_related_doc_id: str
+) -> StandardBusinessEnum:
+    e: ExceptionLog = ExceptionLog.get_instance()
+    try:
+        stmt: Select = select(Requirements).where(
+            Requirements.requirement_id == decrypted_requirement_id  # type: ignore
+        )
+        sql_res: Result = await session.execute(stmt)
+        req = sql_res.scalar_one_or_none()
+        if not req: return StandardBusinessEnum.FAIL
+        req.related_doc = decrypted_related_doc_id
+        await session.commit()
+        e.info(f"需求关联文档修改成功: {decrypted_requirement_id}")
+        return StandardBusinessEnum.SUCCESS
+    except SQLAlchemyError as sql_e:
+        await session.rollback()
+        e.error(f"需求关联文档修改数据库异常{sql_e}")
+        raise DivExcep(
+            code=StandardBusinessEnum.FAIL.value[0],
+            msg="需求关联文档修改数据库异常"
+        )
+    except Exception as err:
+        await session.rollback()
+        e.error(f"需求关联文档修改失败{err}")
+        raise DivExcep(
+            code=StandardBusinessEnum.FAIL.value[0],
+            msg="需求关联文档修改失败"
+        )

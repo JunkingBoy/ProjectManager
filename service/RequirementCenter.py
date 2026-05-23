@@ -11,7 +11,13 @@ from templates.StandardDBTemplate import TbRequirementsTemplate
 from repository.RequirementRepository import requirement_create
 from tools.Files import create_dir, calc_file_hash, search_download_file, del_path_or_file
 from dantics.ReqDantic import RequirementAdd, RequirementFileUpload, RequirementFileDownload, RequirementModify
-from repository.RequirementRepository import confirm_user_doc_relation, requirement_list_info, requirement_detail_info, requirement_mod
+from repository.RequirementRepository import (
+    confirm_user_doc_relation,
+    requirement_list_info,
+    requirement_detail_info,
+    requirement_mod,
+    requirement_file_mod
+)
 from templates.StandardRepositoryTemplate import StandardRequirementsDetailTemplate, StandardRequirementsModifyTemplate
 from enums.StandardBusEnum import StandardBusinessEnum, StandardReqSourceEnum, StandardReqStatusEnum, StandardReqPriorityEnum
 
@@ -80,14 +86,13 @@ async def requirement_file_download(
     else:
         db_pool: StandardSQLiteDBConnectPool = r.app.state.db_pool
         async with db_pool.get_session() as session:
-            _tmp_uid: str = decrypted_uid
-            _is_normal: bool = await user_repeat_normal(session, _tmp_uid)
+            _is_normal: bool = await user_repeat_normal(session, decrypted_uid)
             if not _is_normal: return (StandardBusinessEnum.FAIL.value[0], "用户状态异常")
             _tmp_requirement_id: str = await decrypt(model.requirement_id)
             _tmp_related_doc_id: str = await decrypt(model.related_doc_id)
             _is_exist: StandardBusinessEnum = await confirm_user_doc_relation(
                 session,
-                _tmp_uid,
+                decrypted_uid,
                 _tmp_related_doc_id,
                 _tmp_requirement_id
             )
@@ -106,13 +111,12 @@ async def requirement_file_delete(
     else:
         db_pool: StandardSQLiteDBConnectPool = r.app.state.db_pool
         async with db_pool.get_session() as session:
-            _tmp_uid: str = decrypted_uid
-            _is_normal: bool = await user_repeat_normal(session, _tmp_uid)
+            _is_normal: bool = await user_repeat_normal(session, decrypted_uid)
             if not _is_normal: return (StandardBusinessEnum.FAIL.value[0], "用户状态异常")
             _tmp_related_doc_id: str = await decrypt(encrypted_related_doc_id)
             _is_exist: StandardBusinessEnum = await confirm_user_doc_relation(
                 session,
-                _tmp_uid,
+                decrypted_uid,
                 _tmp_related_doc_id
             )
             if _is_exist != StandardBusinessEnum.SUCCESS: return (StandardBusinessEnum.FAIL.value[0], "您要删除的文件和您的关系不正确")
@@ -120,6 +124,35 @@ async def requirement_file_delete(
             if not _file_path: return (StandardBusinessEnum.FAIL.value[0], "未找到文件")
             del_path_or_file(_file_path, only_file=True)
             return (StandardBusinessEnum.SUCCESS.value[0], "文件删除成功")
+
+async def requirement_file_modify(
+    r: Request,
+    decrypted_uid: str,
+    model: RequirementFileDownload
+) -> tuple:
+    u_platform: Optional[str] = r.headers.get("sec-ch-ua-platform")
+    if not u_platform: return (StandardBusinessEnum.FAIL.value[0], "请求头校验失败")
+    else:
+        db_pool: StandardSQLiteDBConnectPool = r.app.state.db_pool
+        async with db_pool.get_session() as session:
+            _is_normal: bool = await user_repeat_normal(session, decrypted_uid)
+            if not _is_normal: return (StandardBusinessEnum.FAIL.value[0], "用户状态异常")
+            _decrypted_requirement_id: str = await decrypt(model.requirement_id)
+            _decrypted_related_doc_id: str = await decrypt(model.related_doc_id)
+            _is_exist: StandardBusinessEnum = await confirm_user_doc_relation(
+                session,
+                decrypted_uid,
+                _decrypted_related_doc_id,
+                _decrypted_requirement_id
+            )
+            if _is_exist != StandardBusinessEnum.SUCCESS: return (StandardBusinessEnum.FAIL.value[0], "您不可操作该需求")
+            _res: StandardBusinessEnum = await requirement_file_mod(
+                session,
+                _decrypted_requirement_id,
+                _decrypted_related_doc_id
+            )
+            if _res != StandardBusinessEnum.SUCCESS: return (StandardBusinessEnum.FAIL.value[0], "关联文档修改失败")
+            return (StandardBusinessEnum.SUCCESS.value[0], "关联文档修改成功")
 
 async def requirement_list(
     r: Request
@@ -183,7 +216,6 @@ async def requirement_modify(
             )
             if _res != StandardBusinessEnum.SUCCESS: return (StandardBusinessEnum.FAIL.value[0], "需求不存在或修改失败")
             return (StandardBusinessEnum.SUCCESS.value[0], "需求修改成功")
-
 
 async def req_source_list(
     r: Request
