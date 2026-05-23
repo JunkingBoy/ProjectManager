@@ -148,3 +148,42 @@ async def tasks_about_user_by_status_list(
             code=StandardBusinessEnum.FAIL.value[0],
             msg="用户任务列表查询失败"
         )
+
+async def tasks_status_change(
+    session: AsyncSession,
+    decrypted_uid: str,
+    decrypted_task_id: str,
+    status: int
+) -> StandardBusinessEnum:
+    e: ExceptionLog = ExceptionLog.get_instance()
+    try:
+        stmt: Select = select(TasksPool).where(
+            and_(
+                TasksPool.task_id == decrypted_task_id,  # type: ignore
+                or_(
+                    TasksPool.creator == decrypted_uid,  # type: ignore
+                    TasksPool.owner == decrypted_uid  # type: ignore
+                )
+            )
+        )
+        sql_res: Result = await session.execute(stmt)
+        task = sql_res.scalar_one_or_none()
+        if not task: return StandardBusinessEnum.FAIL
+        task.status = status
+        await session.commit()
+        e.info(f"任务状态修改成功: {decrypted_task_id}")
+        return StandardBusinessEnum.SUCCESS
+    except SQLAlchemyError as sql_e:
+        await session.rollback()
+        e.error(f"任务状态修改数据库异常{sql_e}")
+        raise DivExcep(
+            code=StandardBusinessEnum.FAIL.value[0],
+            msg="任务状态修改数据库异常"
+        )
+    except Exception as err:
+        await session.rollback()
+        e.error(f"任务状态修改失败{err}")
+        raise DivExcep(
+            code=StandardBusinessEnum.FAIL.value[0],
+            msg="任务状态修改失败"
+        )

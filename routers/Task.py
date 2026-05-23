@@ -6,13 +6,14 @@ from fastapi.responses import JSONResponse
 from depends.Auth import authentication
 from enums.StandardBusEnum import StandardBusinessEnum
 from templates.StandardResTemplate import StandardResponse
-from dantics.TasksDantic import TasksAdd, RequirementTask
+from dantics.TasksDantic import TasksAdd, RequirementTask, TaskStatusChange
 from service.TasksCenter import (
     task_terminal_list,
     task_status_list,
     task_add,
     task_about_requirement_list,
     task_about_user_by_wait_list,
+    task_status_change,
 )
 
 task: APIRouter = APIRouter(
@@ -83,3 +84,19 @@ async def get_user_status_tasks(
     return JSONResponse(status_code=200, content=StandardResponse(
         code=res[0], msg=res[1], data=res[2] if len(res) > 2 else None, path=None
     ).info)
+
+@task.put("/status")
+async def change_task_status(
+    r: Request,
+    data: TaskStatusChange,
+    success_auth: tuple = Depends(authentication)
+) -> JSONResponse:
+    if success_auth[0] != StandardBusinessEnum.SUCCESS.value[0]:
+        return JSONResponse(status_code=200, content=StandardResponse(
+            code=success_auth[0], msg=success_auth[1], data=None, path=None
+        ).info)
+    else:
+        change_res: tuple = await task_status_change(r, success_auth[1], data)
+        return JSONResponse(status_code=200, content=StandardResponse(
+            code=change_res[0], msg=change_res[1], data=None, path=None
+        ).info)
