@@ -77,6 +77,15 @@ class StandardDevTasksStatusEnum(Enum):
     BUG = 3
     CLOSE = 4
 
+    @classmethod
+    def info(cls) -> dict: return {
+        cls.WAIT.value: "待处理",
+        cls.PROGRESS.value: "进行中",
+        cls.FINISH.value: "已完成",
+        cls.BUG.value: "待修复",
+        cls.CLOSE.value: "已关闭"
+    }
+
 class StandardTaskTerminalEnum(Enum):
     '''
     终端枚举
