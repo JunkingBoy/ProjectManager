@@ -11,7 +11,8 @@ from service.TasksCenter import (
     task_terminal_list,
     task_status_list,
     task_add,
-    task_about_requirement_list
+    task_about_requirement_list,
+    task_about_user_by_wait_list,
 )
 
 task: APIRouter = APIRouter(
@@ -68,3 +69,17 @@ async def get_task_about_requirement(
         return JSONResponse(status_code=200, content=StandardResponse(
             code=res[0], msg=res[1], data=res[2] if len(res) > 2 else None, path=None
         ).info)
+
+@task.get("/user/status")
+async def get_user_status_tasks(
+    r: Request,
+    success_auth: tuple = Depends(authentication)
+) -> JSONResponse:
+    if success_auth[0] != StandardBusinessEnum.SUCCESS.value[0]:
+        return JSONResponse(status_code=200, content=StandardResponse(
+            code=success_auth[0], msg=success_auth[1], data=None, path=None
+        ).info)
+    res: tuple = await task_about_user_by_wait_list(r, success_auth[1])
+    return JSONResponse(status_code=200, content=StandardResponse(
+        code=res[0], msg=res[1], data=res[2] if len(res) > 2 else None, path=None
+    ).info)

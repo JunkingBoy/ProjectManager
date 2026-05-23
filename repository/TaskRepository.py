@@ -92,3 +92,59 @@ async def tasks_about_requirement_list(
             code=StandardBusinessEnum.FAIL.value[0],
             msg="需求任务列表查询失败"
         )
+
+async def tasks_about_user_by_status_list(
+    session: AsyncSession,
+    decrypted_uid: str,
+    status: int
+) -> list:
+    e: ExceptionLog = ExceptionLog.get_instance()
+    try:
+        stmt: Select = select(TasksPool).where(
+            and_(
+                TasksPool.owner == decrypted_uid,  # type: ignore
+                TasksPool.status == status  # type: ignore
+            )
+        )
+        sql_res: Result = await session.execute(stmt)
+        task_list = sql_res.scalars().all()
+        # 收集所有 creator/owner ID 并批量查询用户名
+        uid_set: set = set()
+        for task in task_list:
+            if task.creator: uid_set.add(task.creator)
+            if task.owner: uid_set.add(task.owner)
+        if not uid_set: user_map = {}
+        else:
+            user_stmt: Select = select(User.uid, User.username).where( # type: ignore
+                User.uid.in_(uid_set)  # type: ignore
+            )
+            user_res: Result = await session.execute(user_stmt)
+            user_map: dict = {row.uid: row.username for row in user_res}
+        result: list = [
+            StandardTasksListInfoTemplate(
+                task_id=task.task_id,
+                req_id=task.requirement_id,
+                terminal=task.terminal,
+                title=task.title,
+                desc=task.description or "",
+                dev_total=task.develop_total or "",
+                status=task.status,
+                creator=user_map.get(task.creator, task.creator or ""),
+                owner=user_map.get(task.owner, task.owner or ""),
+                remark=task.remark or "",
+                end_time=int(task.end_time.timestamp()) if task.end_time else 0,
+            ) for task in task_list
+        ]
+        return result
+    except SQLAlchemyError as sql_e:
+        e.error(f"用户任务列表查询异常{sql_e}")
+        raise DivExcep(
+            code=StandardBusinessEnum.FAIL.value[0],
+            msg="用户任务列表查询异常"
+        )
+    except Exception as err:
+        e.error(f"用户任务列表查询失败{err}")
+        raise DivExcep(
+            code=StandardBusinessEnum.FAIL.value[0],
+            msg="用户任务列表查询失败"
+        )
