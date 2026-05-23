@@ -1,6 +1,6 @@
 from copy import deepcopy
 from datetime import datetime
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 from enums.StandardBusEnum import (StandardReqSourceEnum,
 StandardReqStatusEnum,

@@ -52,7 +52,6 @@ class StandardRequirementsTasksInfoTemplate:
     @property
     def info(self) -> dict: return self.__dict__.copy()
 
-
 @dataclass
 class StandardRequirementsDetailTemplate:
     req_id: str

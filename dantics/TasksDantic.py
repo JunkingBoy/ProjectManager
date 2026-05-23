@@ -45,12 +45,6 @@ class TasksAdd(CoreModel):
         ...,
         description="任务状态,0.待处理1.进行中2.已完成3.待修复4.已关闭"
     )]
-    creator: Annotated[str, Field(
-        ...,
-        min_length=1,
-        max_length=256,
-        description="创建者ID加密值"
-    )]
     owner: Annotated[str, Field(
         ...,
         min_length=1,
