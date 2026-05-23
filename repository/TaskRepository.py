@@ -1,4 +1,4 @@
-from datetime import datetime, timezone, timedelta
+from datetime import datetime
 from sqlalchemy.sql import Select
 from sqlalchemy.engine import Result
 from sqlalchemy import select, and_, or_
@@ -77,7 +77,7 @@ async def tasks_about_requirement_list(
                 owner=user_map.get(task.owner, task.owner or ""),
                 remark=task.remark or "",
                 end_time=int(task.end_time.timestamp()) if task.end_time else 0,
-                update_time=int(task.update_time.replace(tzinfo=timezone.utc).timestamp()) if task.update_time else 0
+                update_time=int(task.u_time.timestamp()) if task.u_time else 0
             ) for task in task_list
         ]
         return result
@@ -134,7 +134,7 @@ async def tasks_about_user_by_status_list(
                 owner=user_map.get(task.owner, task.owner or ""),
                 remark=task.remark or "",
                 end_time=int(task.end_time.timestamp()) if task.end_time else 0,
-                update_time=int(task.update_time.replace(tzinfo=timezone.utc).timestamp()) if task.update_time else 0
+                update_time=int(task.u_time.timestamp()) if task.u_time else 0
             ) for task in task_list
         ]
         return result

@@ -3,7 +3,7 @@ from typing import Optional
 from fastapi import Request
 from datetime import datetime, timedelta
 
-from models import UTCTime
+from models import CST
 from tools.Re import generate_uid
 from tools.Files import get_env_val
 from utils.Excptions import DivExcep
@@ -119,7 +119,7 @@ async def user_login(
                 # 发布签名
                 token_inner_info: StandardTokenInfoTemplate = StandardTokenInfoTemplate(
                     uid=await encrypt(_uid),
-                    exp=int((datetime.now(tz=UTCTime) + timedelta(minutes=240)).timestamp())
+                    exp=int((datetime.now(tz=CST) + timedelta(minutes=240)).timestamp())
                 )
                 auth: str = await create_access_token(token_inner_info)
                 return (StandardBusinessEnum.SUCCESS.value[0], "登录成功", {"token": auth})

@@ -2,7 +2,7 @@ import asyncio
 import importlib
 import sys
 import types
-from datetime import timezone
+from datetime import timezone, timedelta
 from types import SimpleNamespace
 
 import pytest
@@ -65,7 +65,7 @@ def load_service_module():
     fastapi_module.HTTPException = FakeHTTPException
 
     models_module = types.ModuleType("models")
-    models_module.UTCTime = timezone.utc
+    models_module.CST = timezone(timedelta(hours=8))
 
     pool_module = types.ModuleType("utils.Pool")
     pool_module.StandardSQLiteDBConnectPool = DummyPool

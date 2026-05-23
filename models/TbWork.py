@@ -1,4 +1,4 @@
-from . import BaseModel, UTCTime
+from . import BaseModel, CST
 
 from typing import cast
 from copy import deepcopy
@@ -94,13 +94,13 @@ class TasksPool(BaseModel):
     ))
     c_time: Column[datetime] = Column(
         DateTime(timezone=False),
-        default=lambda: datetime.now(tz=UTCTime),
+        default=lambda: datetime.now(tz=CST),
         nullable=False,
         comment="创建时间,默认为数据插入时间,时区为UTC"
     )
     u_time: Column[datetime] = Column(
         DateTime(timezone=False),
-        default=lambda: datetime.now(tz=UTCTime),
+        default=lambda: datetime.now(tz=CST),
         nullable=False,
         comment="更新时间,初始默认为数据插入时间,时区为UTC"
     )
@@ -154,7 +154,7 @@ class TasksLog(BaseModel):
     ))
     c_time: Column[datetime] = Column(
         DateTime(timezone=False),
-        default=lambda: datetime.now(tz=UTCTime),
+        default=lambda: datetime.now(tz=CST),
         nullable=False,
         comment="创建时间,默认为数据插入时间,时区为UTC"
     )
