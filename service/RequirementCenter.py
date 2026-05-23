@@ -16,7 +16,7 @@ from repository.RequirementRepository import (
     requirement_list_info,
     requirement_detail_info,
     requirement_mod,
-    requirement_file_mod
+    requirement_file_relationship_mod
 )
 from templates.StandardRepositoryTemplate import StandardRequirementsDetailTemplate, StandardRequirementsModifyTemplate
 from enums.StandardBusEnum import StandardBusinessEnum, StandardReqSourceEnum, StandardReqStatusEnum, StandardReqPriorityEnum
@@ -104,6 +104,7 @@ async def requirement_file_download(
 async def requirement_file_delete(
     r: Request,
     decrypted_uid: str,
+    encrypted_requirement_id: str,
     encrypted_related_doc_id: str
 ) -> tuple:
     u_platform: Optional[str] = r.headers.get("sec-ch-ua-platform")
@@ -122,7 +123,15 @@ async def requirement_file_delete(
             if _is_exist != StandardBusinessEnum.SUCCESS: return (StandardBusinessEnum.FAIL.value[0], "您要删除的文件和您的关系不正确")
             _file_path: str = search_download_file("downloads", _tmp_related_doc_id)
             if not _file_path: return (StandardBusinessEnum.FAIL.value[0], "未找到文件")
-            del_path_or_file(_file_path, only_file=True)
+            # 先删除数据库对应关系
+            _tmp_requirement_id: str = await decrypt(encrypted_requirement_id)
+            res: StandardBusinessEnum = await requirement_file_relationship_mod(
+                session,
+                _tmp_requirement_id,
+                None
+            )
+            if res != StandardBusinessEnum.SUCCESS: return (StandardBusinessEnum.FAIL.value[0], "文件关系删除失败")
+            else: del_path_or_file(_file_path, only_file=True)
             return (StandardBusinessEnum.SUCCESS.value[0], "文件删除成功")
 
 async def requirement_file_modify(
@@ -146,7 +155,7 @@ async def requirement_file_modify(
                 _decrypted_requirement_id
             )
             if _is_exist != StandardBusinessEnum.SUCCESS: return (StandardBusinessEnum.FAIL.value[0], "您不可操作该需求")
-            _res: StandardBusinessEnum = await requirement_file_mod(
+            _res: StandardBusinessEnum = await requirement_file_relationship_mod(
                 session,
                 _decrypted_requirement_id,
                 _decrypted_related_doc_id

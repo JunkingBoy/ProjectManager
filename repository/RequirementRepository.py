@@ -211,10 +211,10 @@ async def requirement_detail_info(
             msg="需求详情查询失败"
         )
 
-async def requirement_file_mod(
+async def requirement_file_relationship_mod(
     session: AsyncSession,
     decrypted_requirement_id: str,
-    decrypted_related_doc_id: str
+    decrypted_related_doc_id: str | None,
 ) -> StandardBusinessEnum:
     e: ExceptionLog = ExceptionLog.get_instance()
     try:

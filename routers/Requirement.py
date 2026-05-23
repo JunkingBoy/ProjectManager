@@ -7,7 +7,7 @@ from fastapi.responses import JSONResponse, FileResponse
 from depends.Auth import authentication
 from enums.StandardBusEnum import StandardBusinessEnum
 from templates.StandardResTemplate import StandardResponse
-from dantics.ReqDantic import RequirementAdd, RequirementFileDownload, RequirementFileDelete, RequirementDetail, RequirementModify
+from dantics.ReqDantic import RequirementAdd, RequirementFileDownload, RequirementDetail, RequirementModify
 from service.RequirementCenter import (
     requirement_file_upload,
     requirement_file_download,
@@ -67,10 +67,10 @@ async def download_req_file(
             media_type="application/octet-stream"
         )
 
-@requirement.delete("/del/{related_doc_id}")
+@requirement.delete("/del")
 async def delete_req_file(
     r: Request,
-    related_doc_id: str,
+    data: RequirementFileDownload = Depends(),
     success_auth: tuple = Depends(authentication)
 ) -> JSONResponse:
     if success_auth[0] != StandardBusinessEnum.SUCCESS.value[0]:
@@ -78,8 +78,12 @@ async def delete_req_file(
             code=success_auth[0], msg=success_auth[1], data=None, path=None
         ).info)
     else:
-        RequirementFileDelete(related_doc_id=related_doc_id)
-        del_res: tuple = await requirement_file_delete(r, success_auth[1], related_doc_id)
+        del_res: tuple = await requirement_file_delete(
+            r,
+            success_auth[1],
+            data.requirement_id,
+            data.related_doc_id
+        )
         return JSONResponse(status_code=200, content=StandardResponse(
             code=del_res[0], msg=del_res[1], data=None, path=None
         ).info)
@@ -156,7 +160,6 @@ async def get_requirement_list(
     return JSONResponse(status_code=200, content=StandardResponse(
         code=res[0], msg=res[1], data=res[2] if len(res) > 2 else None, path=None
     ).info)
-
 
 @requirement.get("/detail")
 async def get_requirement_detail(
