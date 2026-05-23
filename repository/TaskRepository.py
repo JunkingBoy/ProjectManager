@@ -160,10 +160,7 @@ async def tasks_status_change(
         stmt: Select = select(TasksPool).where(
             and_(
                 TasksPool.task_id == decrypted_task_id,  # type: ignore
-                or_(
-                    TasksPool.creator == decrypted_uid,  # type: ignore
-                    TasksPool.owner == decrypted_uid  # type: ignore
-                )
+                TasksPool.owner == decrypted_uid  # type: ignore
             )
         )
         sql_res: Result = await session.execute(stmt)
@@ -186,4 +183,43 @@ async def tasks_status_change(
         raise DivExcep(
             code=StandardBusinessEnum.FAIL.value[0],
             msg="任务状态修改失败"
+        )
+
+async def tasks_transfer_owner(
+    session: AsyncSession,
+    decrypted_uid: str,
+    decrypted_task_id: str,
+    decrypted_owner_id: str
+) -> StandardBusinessEnum:
+    e: ExceptionLog = ExceptionLog.get_instance()
+    try:
+        stmt: Select = select(TasksPool).where(
+            and_(
+                TasksPool.task_id == decrypted_task_id,  # type: ignore
+                or_(
+                    TasksPool.creator == decrypted_uid,  # type: ignore
+                    TasksPool.owner == decrypted_uid  # type: ignore
+                )
+            )
+        )
+        sql_res: Result = await session.execute(stmt)
+        task = sql_res.scalar_one_or_none()
+        if not task: return StandardBusinessEnum.FAIL
+        task.owner = decrypted_owner_id
+        await session.commit()
+        e.info(f"任务负责人转移成功: {decrypted_task_id}")
+        return StandardBusinessEnum.SUCCESS
+    except SQLAlchemyError as sql_e:
+        await session.rollback()
+        e.error(f"任务负责人转移数据库异常{sql_e}")
+        raise DivExcep(
+            code=StandardBusinessEnum.FAIL.value[0],
+            msg="任务负责人转移数据库异常"
+        )
+    except Exception as err:
+        await session.rollback()
+        e.error(f"任务负责人转移失败{err}")
+        raise DivExcep(
+            code=StandardBusinessEnum.FAIL.value[0],
+            msg="任务负责人转移失败"
         )

@@ -108,3 +108,19 @@ class TaskStatusChange(CoreModel):
         valid_values: set = {item.value for item in StandardDevTasksStatusEnum}
         if v not in valid_values: raise ValueError('非法任务状态')
         return v
+
+class TaskTransferOwner(CoreModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    task_id: Annotated[str, Field(
+        ...,
+        min_length=1,
+        max_length=256,
+        description="任务ID加密值"
+    )]
+    transfer_uid: Annotated[str, Field(
+        ...,
+        min_length=1,
+        max_length=256,
+        description="新负责人ID加密值"
+    )]
