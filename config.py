@@ -10,6 +10,7 @@ from fastapi.exceptions import RequestValidationError
 from routers.Key import key
 from routers.User import user
 from routers.Dict import dict
+from routers.Task import task
 from routers.Requirement import requirement
 
 from tools.Files import create_dir
@@ -51,7 +52,7 @@ async def init_nosql_storage() -> StandardNoSQLPool:
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     e: ExceptionLog = ExceptionLog()
-    routers: list = [user, key, dict, requirement]
+    routers: list = [user, key, dict, requirement, task]
     for router in routers: app.include_router(router)
     try:
         # 创建数据库连接池和初始化表
