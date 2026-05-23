@@ -4,12 +4,11 @@ from datetime import datetime
 from fastapi import Request
 
 from tools.Re import generate_uid
-from dantics.TasksDantic import TasksAdd, TaskStatusChange, TaskTransferOwner
 from utils.Encry import decrypt, encrypt
 from utils.Pool import StandardSQLiteDBConnectPool
 from repository.UserRepository import user_repeat_normal
+from dantics.TasksDantic import TasksAdd, TaskStatusChange, TaskTransferOwner
 from repository.TaskRepository import tasks_create, tasks_about_requirement_list, tasks_about_user_by_status_list, tasks_status_change, tasks_transfer_owner
-from repository.RequirementRepository import requirement_create
 
 from templates.StandardDBTemplate import TbDevelopTasksPoolTmplate
 from enums.StandardBusEnum import StandardBusinessEnum, StandardTaskTerminalEnum, StandardDevTasksStatusEnum
@@ -88,7 +87,7 @@ async def task_about_user_by_status_list(
     else:
         db_pool: StandardSQLiteDBConnectPool = r.app.state.db_pool
         async with db_pool.get_session() as session:
-            raw_data: list = await tasks_about_user_by_status_list(session, decrypted_uid, StandardDevTasksStatusEnum.WAIT.value)
+            raw_data: list = await tasks_about_user_by_status_list(session, decrypted_uid, status)
             result: list = []
             for item in raw_data:
                 d: dict = item.info
