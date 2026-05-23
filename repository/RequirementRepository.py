@@ -194,7 +194,7 @@ async def requirement_mod(
         req.priority = data.priority
         req.remark = data.remark
         req.release_time = data.release_time
-        req.update_time = datetime.now()
+        req.u_time = datetime.now()
         await session.commit()
         e.info(f"需求修改成功: {data.decrypt_req_id}")
         return StandardBusinessEnum.SUCCESS
@@ -271,6 +271,7 @@ async def requirement_file_relationship_mod(
         req = sql_res.scalar_one_or_none()
         if not req: return StandardBusinessEnum.FAIL
         req.related_doc = decrypted_related_doc_id
+        req.u_time = datetime.now()
         await session.commit()
         e.info(f"需求关联文档修改成功: {decrypted_requirement_id}")
         return StandardBusinessEnum.SUCCESS

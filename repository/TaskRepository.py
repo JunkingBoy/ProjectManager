@@ -167,6 +167,7 @@ async def tasks_status_change(
         task = sql_res.scalar_one_or_none()
         if not task: return StandardBusinessEnum.FAIL
         task.status = status
+        task.u_time = datetime.now()
         await session.commit()
         e.info(f"任务状态修改成功: {decrypted_task_id}")
         return StandardBusinessEnum.SUCCESS
@@ -206,6 +207,7 @@ async def tasks_transfer_owner(
         task = sql_res.scalar_one_or_none()
         if not task: return StandardBusinessEnum.FAIL
         task.owner = decrypted_owner_id
+        task.u_time = datetime.now()
         await session.commit()
         e.info(f"任务负责人转移成功: {decrypted_task_id}")
         return StandardBusinessEnum.SUCCESS
