@@ -184,16 +184,6 @@ class RequirementFileDownload(CoreModel):
         description="需求关联文档tag加密值"
     )]
 
-class RequirementFileDelete(CoreModel):
-    model_config = ConfigDict(from_attributes=True)
-
-    related_doc_id: Annotated[str, Field(
-        ...,
-        min_length=1,
-        max_length=256,
-        description="需求关联文档tag加密值"
-    )]
-
 class RequirementDetail(CoreModel):
     model_config = ConfigDict(from_attributes=True)
 
