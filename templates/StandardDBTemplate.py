@@ -4,9 +4,8 @@ from dataclasses import dataclass, field
 
 from enums.StandardBusEnum import (StandardReqSourceEnum,
 StandardReqStatusEnum,
-StandardPointStatusEnum,
 StandardDevTasksStatusEnum,
-StandardQaTasksPoolStatusEnum,
+StandardTaskTerminalEnum,
 StandardBugStatusEnum,
 StandardReqPriorityEnum)
 
@@ -57,27 +56,14 @@ class TbRequirementsTemplate:
 class TbDevelopTasksPoolTmplate:
     task_id: str
     req_id: str
-    point_id: str
-    title: str
+    terminal: StandardTaskTerminalEnum
     desc: str
+    dev_total: str
     status: StandardDevTasksStatusEnum
     creator: str
     owner: str
-
-    @property
-    def info(self) -> dict: return deepcopy(self.__dict__)
-
-@dataclass
-class TbQaTasksPoolTemplate:
-    task_id: str
-    req_id: str
-    point_id: str
-    title: str
-    desc: str
-    status: StandardQaTasksPoolStatusEnum
-    creator: str
-    owner: str
-    developer: str
+    remark: str
+    end_time: datetime # 任务计划结束时间
 
     @property
     def info(self) -> dict: return deepcopy(self.__dict__)

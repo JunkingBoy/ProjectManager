@@ -5,7 +5,7 @@ from copy import deepcopy
 from datetime import datetime
 from sqlalchemy import Column, Integer, String, DateTime, Text
 
-from templates.StandardDBTemplate import TbDevelopTasksPoolTmplate, TbQaTasksPoolTemplate
+from templates.StandardDBTemplate import TbDevelopTasksPoolTmplate
 
 class TasksPool(BaseModel):
     __tablename__ = 'tasks_pool'
@@ -30,8 +30,8 @@ class TasksPool(BaseModel):
         nullable=False, # 不允许为空
         comment="关联需求ID"
     ))
-    terminal: str = cast(str, Column(
-        String(128),
+    terminal: int = cast(int, Column(
+        Integer,
         unique=False,
         index=True,
         nullable=True, # 考虑任务终端表
@@ -56,7 +56,7 @@ class TasksPool(BaseModel):
         unique=False,
         index=True,
         nullable=False,
-        comment="任务状态,1.设计中2.开发中3.开发完毕4.测试中5.废弃"
+        comment="任务状态,0.待处理1.进行中2.已完成3.待修复4.已关闭"
     ))
     creator: str = cast(str, Column(
         String(32),
@@ -79,6 +79,12 @@ class TasksPool(BaseModel):
         nullable=True,
         comment="任务备注"
     ))
+    end_time: datetime = cast(datetime, Column(
+        DateTime(timezone=False),
+        default=None,
+        nullable=True,
+        comment="任务计划结束时间"
+    ))
     c_time: Column[datetime] = Column(
         DateTime(timezone=False),
         default=lambda: datetime.now(tz=UTCTime),
@@ -91,6 +97,22 @@ class TasksPool(BaseModel):
         nullable=False,
         comment="更新时间,初始默认为数据插入时间,时区为UTC"
     )
+
+    def __init__(
+        self,
+        data: TbDevelopTasksPoolTmplate
+    ) -> None:
+        self.task_id: str = data.task_id
+        self.requirement_id: str = data.req_id
+        self.terminal: int = data.terminal.value
+        self.description: str = data.desc
+        self.develop_total: str = data.dev_total
+        self.status: int = data.status.value
+        self.creator: str = data.creator
+        self.owner: str = data.owner
+        self.remark: str = data.remark
+        self.end_time: datetime = data.end_time
+
 
 class TasksLog(BaseModel):
     __tablename__ = 'tasks_log'

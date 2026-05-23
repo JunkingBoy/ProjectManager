@@ -20,7 +20,7 @@ from adapters.Sqlite import SQLiteAdapter
 from dantics.GlobalDantic import CoreModel
 from utils.NoSqlPool import StandardNoSQLPool
 from utils.Pool import StandardSQLiteDBConnectPool
-from models import BaseModel, TbPoint, TbUser, TbRequirements, TbBug, TbWork
+from models import BaseModel, TbUser, TbRequirements, TbBug, TbWork
 from templates.StandardSysTemplate import StandardSqliteConnTemplate, StandardNoSqlConnTemplate
 
 # 提供初始化用的建表方法

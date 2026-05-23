@@ -67,17 +67,6 @@ class StandardReqPriorityEnum(Enum):
             cls.HIGHT.value: "高"
         }
 
-class StandardPointStatusEnum(Enum):
-    '''
-    功能点状态机枚举
-    '''
-    PLAN = 1
-    LOCK = 2
-    DEVELOP = 3
-    TEST = 4
-    REPAIR = 5
-    FINISH = 6
-
 class StandardDevTasksStatusEnum(Enum):
     '''
     研发任务池状态机枚举
@@ -88,12 +77,24 @@ class StandardDevTasksStatusEnum(Enum):
     TEST = 4
     CANCEL = 5
 
-class StandardQaTasksPoolStatusEnum(Enum):
-    DESIGN = 1
-    IMPLEMENT = 2
-    REPAIR = 3
-    PASS = 4
-    CANCEL = 5
+class StandardTaskTerminalEnum(Enum):
+    '''
+    终端枚举
+    '''
+    BACK = 0
+    ANDROID = 1
+    IOS = 2
+    MINI = 3
+    H5 = 4
+
+    @classmethod
+    def info(cls) -> dict: return {
+        cls.BACK.value: "后台",
+        cls.ANDROID.value: "安卓",
+        cls.IOS.value: "IOS",
+        cls.MINI.value: "小程序",
+        cls.H5.value: "H5"
+    }
 
 class StandardBugStatusEnum(Enum):
     UNFIX = 0
