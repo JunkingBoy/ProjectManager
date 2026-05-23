@@ -217,7 +217,8 @@ async def requirement_modify(
                 decrypt_req_id=_decrypted_requirement_id,
                 decrypt_relevant=_decrypted_relevant,
                 priority=model.priority,
-                remark=model.remark if model.remark else ""
+                remark=model.remark if model.remark else "",
+                release_time=datetime.fromtimestamp(float(model.release_time))
             )
             _res: StandardBusinessEnum = await requirement_mod(
                 session,

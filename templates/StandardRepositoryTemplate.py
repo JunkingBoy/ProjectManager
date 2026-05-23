@@ -1,6 +1,5 @@
+from datetime import datetime
 from dataclasses import dataclass
-
-from enums.StandardBusEnum import StandardReqStatusEnum
 
 @dataclass
 class StandardUserRepositoryTemplate:
@@ -64,6 +63,7 @@ class StandardRequirementsModifyTemplate:
     decrypt_relevant: str
     priority: int
     remark: str
+    release_time: datetime
 
     @property
     def info(self) -> dict: return self.__dict__.copy()

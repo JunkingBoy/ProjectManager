@@ -1,3 +1,4 @@
+from datetime import datetime
 from sqlalchemy.sql import Select
 from sqlalchemy.engine import Result
 from sqlalchemy import select, and_, or_
@@ -147,6 +148,8 @@ async def requirement_mod(
         req.relevant = data.decrypt_relevant
         req.priority = data.priority
         req.remark = data.remark
+        req.release_time = data.release_time
+        req.update_time = datetime.now()
         await session.commit()
         e.info(f"需求修改成功: {data.decrypt_req_id}")
         return StandardBusinessEnum.SUCCESS
