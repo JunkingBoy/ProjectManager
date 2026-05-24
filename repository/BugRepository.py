@@ -46,6 +46,7 @@ async def bug_list(
     status: int | None,
     filter_self_created: bool = False,
     filter_self_assigned: bool = False,
+    decrypted_task_id: str | None = None,
 ) -> list:
     e: ExceptionLog = ExceptionLog.get_instance()
     try:
@@ -64,6 +65,8 @@ async def bug_list(
             conditions.append(TbBugsPool.owner == decrypted_owner)  # type: ignore
         if status is not None:
             conditions.append(TbBugsPool.status == status)  # type: ignore
+        if decrypted_task_id is not None:
+            conditions.append(TbBugsPool.task_id == decrypted_task_id)  # type: ignore
         stmt: Select = select(TbBugsPool)
         if conditions: stmt = stmt.where(and_(*conditions))
         sql_res: Result = await session.execute(stmt)
@@ -108,4 +111,30 @@ async def bug_list(
         raise DivExcep(
             code=StandardBusinessEnum.FAIL.value[0],
             msg="Bug列表查询失败"
+        )
+
+async def bug_distinct_task_ids(
+    session: AsyncSession,
+    task_ids: list
+) -> set:
+    """批量查询哪些 task_id 存在关联的 Bug，返回有 Bug 的 task_id 集合"""
+    if not task_ids: return set()
+    e: ExceptionLog = ExceptionLog.get_instance()
+    try:
+        stmt: Select = select(TbBugsPool.task_id).distinct().where(  # type: ignore
+            TbBugsPool.task_id.in_(task_ids)  # type: ignore
+        )
+        sql_res: Result = await session.execute(stmt)
+        return {row[0] for row in sql_res}
+    except SQLAlchemyError as sql_e:
+        e.error(f"Bug任务ID查询异常{sql_e}")
+        raise DivExcep(
+            code=StandardBusinessEnum.FAIL.value[0],
+            msg="Bug任务ID查询异常"
+        )
+    except Exception as err:
+        e.error(f"Bug任务ID查询失败{err}")
+        raise DivExcep(
+            code=StandardBusinessEnum.FAIL.value[0],
+            msg="Bug任务ID查询失败"
         )

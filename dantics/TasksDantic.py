@@ -180,3 +180,4 @@ class TaskDelete(CoreModel):
         max_length=256,
         description="任务ID加密值"
     )]
+
