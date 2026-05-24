@@ -427,15 +427,18 @@ async def task_raw_list_by_req_id(
 
 async def task_list_by_ids(
     session: AsyncSession,
-    decrypted_task_ids: list[str]
+    decrypted_task_ids: list[str],
+    status: int | None = None
 ) -> list:
-    """根据 task_id 列表批量查询任务信息"""
+    """根据 task_id 列表批量查询任务信息，可选按 status 过滤"""
     if not decrypted_task_ids: return []
     e: ExceptionLog = ExceptionLog.get_instance()
     try:
         stmt: Select = select(TasksPool).where(
             TasksPool.task_id.in_(decrypted_task_ids)  # type: ignore
         )
+        if status is not None:
+            stmt = stmt.where(TasksPool.status == status)  # type: ignore
         sql_res: Result = await session.execute(stmt)
         task_list = sql_res.scalars().all()
         uid_set: set = set()

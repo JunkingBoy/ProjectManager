@@ -9,7 +9,7 @@ from utils.Pool import StandardSQLiteDBConnectPool
 from repository.UserRepository import user_repeat_normal
 from dantics.TasksDantic import TasksAdd, TaskStatusChange, TaskTransferOwner, TaskDescModify, TaskRemarkModify, TaskDelete, RequirementTask
 from repository.TaskRepository import tasks_create, task_list, tasks_status_change, tasks_transfer_owner, tasks_desc_modify, tasks_remark_modify, tasks_delete, task_req_id, task_open_count_by_req_id, task_raw_list_by_req_id, task_list_by_ids as task_list_by_ids_repo
-from repository.BugRepository import bug_distinct_task_ids, bug_count_by_task_id
+from repository.BugRepository import bug_distinct_task_ids, bug_count_by_task_id, bug_list as bug_list_repo
 from repository.RequirementRepository import requirement_status_to_release, requirement_person_by_id
 from models.TbWork import TasksPool
 
@@ -259,6 +259,32 @@ async def task_list_by_ids(
         async with db_pool.get_session() as session:
             decrypted_ids: list = [await decrypt(tid) for tid in task_ids]
             raw_data: list = await task_list_by_ids_repo(session, decrypted_ids)
+            result: list = []
+            for item in raw_data:
+                d: dict = item.info
+                d["task_id"] = await encrypt(item.task_id) if item.task_id else ""
+                d["req_id"] = await encrypt(item.req_id) if item.req_id else ""
+                result.append(d)
+            return (StandardBusinessEnum.SUCCESS.value[0], "查询成功", result)
+
+
+async def task_list_by_bug_owner(
+    r: Request,
+    decrypted_uid: str,
+) -> tuple:
+    u_platform: Optional[str] = r.headers.get("sec-ch-ua-platform")
+    if not u_platform: return (StandardBusinessEnum.FAIL.value[0], "请求头校验失败")
+    else:
+        db_pool: StandardSQLiteDBConnectPool = r.app.state.db_pool
+        async with db_pool.get_session() as session:
+            bugs: list = await bug_list_repo(
+                session, decrypted_uid, None, None, None,
+                filter_self_assigned=True
+            )
+            task_ids: list = list({b.task_id for b in bugs if b.task_id})
+            if not task_ids:
+                return (StandardBusinessEnum.SUCCESS.value[0], "查询成功", [])
+            raw_data: list = await task_list_by_ids_repo(session, task_ids, status=StandardDevTasksStatusEnum.BUG.value)
             result: list = []
             for item in raw_data:
                 d: dict = item.info

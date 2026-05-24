@@ -20,6 +20,7 @@ from service.TasksCenter import (
     task_delete,
     task_bug_list,
     task_list_by_ids,
+    task_list_by_bug_owner,
 )
 
 task: APIRouter = APIRouter(
@@ -197,6 +198,21 @@ async def get_task_list_by_ids(
             code=success_auth[0], msg=success_auth[1], data=None, path=None
         ).info)
     res: tuple = await task_list_by_ids(r, success_auth[1], task_ids)
+    return JSONResponse(status_code=200, content=StandardResponse(
+        code=res[0], msg=res[1], data=res[2] if len(res) > 2 else None, path=None
+    ).info)
+
+
+@task.get("/bug-owner")
+async def get_task_list_by_bug_owner(
+    r: Request,
+    success_auth: tuple = Depends(authentication)
+) -> JSONResponse:
+    if success_auth[0] != StandardBusinessEnum.SUCCESS.value[0]:
+        return JSONResponse(status_code=200, content=StandardResponse(
+            code=success_auth[0], msg=success_auth[1], data=None, path=None
+        ).info)
+    res: tuple = await task_list_by_bug_owner(r, success_auth[1])
     return JSONResponse(status_code=200, content=StandardResponse(
         code=res[0], msg=res[1], data=res[2] if len(res) > 2 else None, path=None
     ).info)
