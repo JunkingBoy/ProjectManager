@@ -7,7 +7,7 @@ from utils.Pool import StandardSQLiteDBConnectPool
 from repository.BugRepository import bug_create, bug_list as bug_list_repo
 from templates.StandardDBTemplate import TbBugsPoolTemplate
 from enums.StandardBusEnum import StandardBusinessEnum, StandardBugStatusEnum
-from dantics.BugDantic import BugAdd, BugQuery
+from dantics.BugDantic import BugAdd, BugQuery, BugFilterQuery
 
 async def bug_add(
     r: Request,
@@ -55,6 +55,35 @@ async def bug_list(
                 data.status,
                 data.filter_self_created,
                 data.filter_self_assigned,
+            )
+            result: list = []
+            for item in raw_data:
+                d: dict = item.info
+                d["bug_id"] = await encrypt(item.bug_id) if item.bug_id else ""
+                d["req_id"] = await encrypt(item.req_id) if item.req_id else ""
+                d["task_id"] = await encrypt(item.task_id) if item.task_id else ""
+                result.append(d)
+            return (StandardBusinessEnum.SUCCESS.value[0], "查询成功", result)
+
+async def bug_filter_list(
+    r: Request,
+    decrypted_uid: str,
+    data: BugFilterQuery
+) -> tuple:
+    u_platform: Optional[str] = r.headers.get("sec-ch-ua-platform")
+    if not u_platform: return (StandardBusinessEnum.FAIL.value[0], "请求头校验失败")
+    else:
+        db_pool: StandardSQLiteDBConnectPool = r.app.state.db_pool
+        async with db_pool.get_session() as session:
+            _req_id: str | None = await decrypt(data.req_id) if data.req_id else None
+            _task_id: str | None = await decrypt(data.task_id) if data.task_id else None
+            raw_data: list = await bug_list_repo(
+                session,
+                decrypted_uid,
+                _req_id,
+                None,
+                data.status,
+                decrypted_task_id=_task_id,
             )
             result: list = []
             for item in raw_data:

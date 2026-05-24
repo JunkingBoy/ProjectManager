@@ -4,6 +4,18 @@ from pydantic import Field, field_validator, ConfigDict
 from dantics.GlobalDantic import CoreModel
 from enums.StandardBusEnum import StandardBugStatusEnum
 
+class BugQuery(CoreModel):
+    model_config = ConfigDict(from_attributes=True, extra='forbid')
+
+    req_id: str | None = None
+    task_id: str | None = None
+    status: int | None = None
+    creator: str | None = None
+    owner: str | None = None
+    developer: str | None = None
+    filter_self_created: bool = False
+    filter_self_assigned: bool = False
+
 class BugAdd(CoreModel):
     model_config = ConfigDict(from_attributes=True)
 
@@ -56,14 +68,9 @@ class BugAdd(CoreModel):
         if v not in valid_values: raise ValueError('非法Bug状态')
         return v
 
-class BugQuery(CoreModel):
+class BugFilterQuery(CoreModel):
     model_config = ConfigDict(from_attributes=True, extra='forbid')
 
     req_id: str | None = None
     task_id: str | None = None
     status: int | None = None
-    creator: str | None = None
-    owner: str | None = None
-    developer: str | None = None
-    filter_self_created: bool = False
-    filter_self_assigned: bool = False

@@ -157,6 +157,8 @@ async def task_list(
             stmt = stmt.where(and_(*conditions))
         if order_by_column is not None:
             stmt = stmt.order_by(order_by_column)
+        else:
+            stmt = stmt.order_by(TasksPool.u_time.asc())  # type: ignore
         sql_res: Result = await session.execute(stmt)
         task_list = sql_res.scalars().all()
         uid_set: set = set()

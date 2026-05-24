@@ -98,7 +98,6 @@ class StandardTasksListInfoTemplate:
     @property
     def info(self) -> dict: return self.__dict__.copy()
 
-
 @dataclass
 class StandardBugListInfoTemplate:
     bug_id: str
