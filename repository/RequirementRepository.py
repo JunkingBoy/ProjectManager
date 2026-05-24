@@ -257,6 +257,41 @@ async def requirement_detail_info(
             msg="需求详情查询失败"
         )
 
+async def requirement_status_to_test(
+    session: AsyncSession,
+    decrypted_req_id: str
+) -> StandardBusinessEnum:
+    """将需求状态变更为 TEST(1)，如果当前状态已经是 TEST 则跳过"""
+    if not decrypted_req_id: return StandardBusinessEnum.FAIL
+    e: ExceptionLog = ExceptionLog.get_instance()
+    try:
+        stmt: Select = select(Requirements).where(
+            Requirements.requirement_id == decrypted_req_id  # type: ignore
+        )
+        sql_res: Result = await session.execute(stmt)
+        req = sql_res.scalar_one_or_none()
+        if not req: return StandardBusinessEnum.FAIL
+        if req.status == StandardReqStatusEnum.TEST.value: return StandardBusinessEnum.SUCCESS
+        req.status = StandardReqStatusEnum.TEST.value
+        req.u_time = datetime.now()
+        await session.commit()
+        e.info(f"需求状态变更为TEST成功: {decrypted_req_id}")
+        return StandardBusinessEnum.SUCCESS
+    except SQLAlchemyError as sql_e:
+        await session.rollback()
+        e.error(f"需求状态变更数据库异常{sql_e}")
+        raise DivExcep(
+            code=StandardBusinessEnum.FAIL.value[0],
+            msg="需求状态变更数据库异常"
+        )
+    except Exception as err:
+        await session.rollback()
+        e.error(f"需求状态变更失败{err}")
+        raise DivExcep(
+            code=StandardBusinessEnum.FAIL.value[0],
+            msg="需求状态变更失败"
+        )
+
 async def requirement_file_relationship_mod(
     session: AsyncSession,
     decrypted_requirement_id: str,

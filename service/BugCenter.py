@@ -7,6 +7,7 @@ from models.TbBug import TbBugsPool
 from repository.BugRepository import bug_create, bug_list as bug_list_repo, bug_detail as bug_detail_repo, bug_status_change as bug_status_change_repo, bug_open_count_by_task_id
 from repository.UserRepository import user_map_by_uids
 from repository.TaskRepository import tasks_force_status_change
+from repository.RequirementRepository import requirement_status_to_test
 from templates.StandardDBTemplate import TbBugsPoolTemplate
 from enums.StandardBusEnum import StandardBusinessEnum, StandardBugStatusEnum, StandardDevTasksStatusEnum
 from dantics.BugDantic import BugAdd, BugQuery, BugFilterQuery, BugDetail, BugStatusChange
@@ -35,6 +36,7 @@ async def bug_add(
             )
             _res: StandardBusinessEnum = await bug_create(session, bug_template)
             if _res != StandardBusinessEnum.SUCCESS: return (StandardBusinessEnum.FAIL.value[0], "Bug创建失败")
+            await requirement_status_to_test(session, bug_template.req_id)
             if bug_template.task_id:
                 await tasks_force_status_change(session, bug_template.task_id, StandardDevTasksStatusEnum.BUG.value)
             return (StandardBusinessEnum.SUCCESS.value[0], "Bug创建成功")
