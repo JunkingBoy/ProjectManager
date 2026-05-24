@@ -1,7 +1,7 @@
 from datetime import datetime
 from sqlalchemy.sql import Select
 from sqlalchemy.engine import Result
-from sqlalchemy import select, and_, or_
+from sqlalchemy import select, and_, or_, func
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -312,4 +312,58 @@ async def tasks_transfer_owner(
         raise DivExcep(
             code=StandardBusinessEnum.FAIL.value[0],
             msg="任务负责人转移失败"
+        )
+
+async def task_req_id(
+    session: AsyncSession,
+    decrypted_task_id: str
+) -> str | None:
+    """获取任务关联的需求ID"""
+    e: ExceptionLog = ExceptionLog.get_instance()
+    try:
+        stmt: Select = select(TasksPool.requirement_id).where(  # type: ignore
+            TasksPool.task_id == decrypted_task_id  # type: ignore
+        )
+        sql_res: Result = await session.execute(stmt)
+        return sql_res.scalar_one_or_none()
+    except SQLAlchemyError as sql_e:
+        e.error(f"任务关联需求查询异常{sql_e}")
+        raise DivExcep(
+            code=StandardBusinessEnum.FAIL.value[0],
+            msg="任务关联需求查询异常"
+        )
+    except Exception as err:
+        e.error(f"任务关联需求查询失败{err}")
+        raise DivExcep(
+            code=StandardBusinessEnum.FAIL.value[0],
+            msg="任务关联需求查询失败"
+        )
+
+async def task_open_count_by_req_id(
+    session: AsyncSession,
+    decrypted_req_id: str
+) -> int:
+    """查询指定需求下 status != CLOSE 的任务数量"""
+    if not decrypted_req_id: return 0
+    e: ExceptionLog = ExceptionLog.get_instance()
+    try:
+        stmt: Select = select(func.count(TasksPool.task_id)).where(  # type: ignore
+            and_(
+                TasksPool.requirement_id == decrypted_req_id,  # type: ignore
+                TasksPool.status != StandardDevTasksStatusEnum.CLOSE.value  # type: ignore
+            )
+        )
+        sql_res: Result = await session.execute(stmt)
+        return sql_res.scalar() or 0
+    except SQLAlchemyError as sql_e:
+        e.error(f"任务开放数量查询异常{sql_e}")
+        raise DivExcep(
+            code=StandardBusinessEnum.FAIL.value[0],
+            msg="任务开放数量查询异常"
+        )
+    except Exception as err:
+        e.error(f"任务开放数量查询失败{err}")
+        raise DivExcep(
+            code=StandardBusinessEnum.FAIL.value[0],
+            msg="任务开放数量查询失败"
         )

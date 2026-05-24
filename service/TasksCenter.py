@@ -8,8 +8,9 @@ from utils.Encry import decrypt, encrypt
 from utils.Pool import StandardSQLiteDBConnectPool
 from repository.UserRepository import user_repeat_normal
 from dantics.TasksDantic import TasksAdd, TaskStatusChange, TaskTransferOwner, TaskDescModify, TaskRemarkModify, TaskDelete
-from repository.TaskRepository import tasks_create, task_list, tasks_status_change, tasks_transfer_owner, tasks_desc_modify, tasks_remark_modify, tasks_delete
+from repository.TaskRepository import tasks_create, task_list, tasks_status_change, tasks_transfer_owner, tasks_desc_modify, tasks_remark_modify, tasks_delete, task_req_id, task_open_count_by_req_id
 from repository.BugRepository import bug_distinct_task_ids, bug_count_by_task_id
+from repository.RequirementRepository import requirement_status_to_release
 from models.TbWork import TasksPool
 
 from templates.StandardDBTemplate import TbDevelopTasksPoolTmplate
@@ -116,6 +117,12 @@ async def task_status_change(
                 if bug_count > 0: return (StandardBusinessEnum.FAIL.value[0], "该任务下还有关联Bug未处理，无法关闭")
             _res: StandardBusinessEnum = await tasks_status_change(session, decrypted_uid, _decrypted_task_id, model.status)
             if _res != StandardBusinessEnum.SUCCESS: return (StandardBusinessEnum.FAIL.value[0], "任务不存在或无权限修改")
+            if model.status == StandardDevTasksStatusEnum.CLOSE.value:
+                req_id: str | None = await task_req_id(session, _decrypted_task_id)
+                if req_id:
+                    open_count: int = await task_open_count_by_req_id(session, req_id)
+                    if open_count == 0:
+                        await requirement_status_to_release(session, req_id)
             return (StandardBusinessEnum.SUCCESS.value[0], "任务状态修改成功")
 
 async def task_transfer_owner(
