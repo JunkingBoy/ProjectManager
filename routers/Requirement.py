@@ -8,6 +8,7 @@ from depends.Auth import authentication
 from enums.StandardBusEnum import StandardBusinessEnum
 from templates.StandardResTemplate import StandardResponse
 from dantics.ReqDantic import RequirementAdd, RequirementFileDownload, RequirementDetail, RequirementModify
+from dantics.TasksDantic import RequirementTask
 from service.RequirementCenter import (
     requirement_file_upload,
     requirement_file_download,
@@ -22,6 +23,7 @@ from service.RequirementCenter import (
     req_status_list,
     req_priority_list,
 )
+from service.TasksCenter import task_statistics
 
 requirement = APIRouter(
     prefix="/requirement",
@@ -206,3 +208,18 @@ async def modify_requirement(
         return JSONResponse(status_code=200, content=StandardResponse(
             code=mod_res[0], msg=mod_res[1], data=None, path=None
         ).info)
+
+@requirement.get("/statistics")
+async def get_requirement_statistics(
+    r: Request,
+    data: RequirementTask = Depends(),
+    success_auth: tuple = Depends(authentication)
+) -> JSONResponse:
+    if success_auth[0] != StandardBusinessEnum.SUCCESS.value[0]:
+        return JSONResponse(status_code=200, content=StandardResponse(
+            code=success_auth[0], msg=success_auth[1], data=None, path=None
+        ).info)
+    res: tuple = await task_statistics(r, success_auth[1], data)
+    return JSONResponse(status_code=200, content=StandardResponse(
+        code=res[0], msg=res[1], data=res[2] if len(res) > 2 else None, path=None
+    ).info)

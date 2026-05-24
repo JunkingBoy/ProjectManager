@@ -237,11 +237,12 @@ async def task_statistics(
             groups: dict = {}
             for task_id, terminal, status, end_time in raw_tasks:
                 if terminal not in groups:
-                    groups[terminal] = {"terminal": terminal, "UNRELEASED": 0, "UNRELEASE_RELEASED": 0, "OVER": []}
-                groups[terminal]["UNRELEASED"] += 1
+                    groups[terminal] = {"terminal": terminal, "unclosed": 0, "unfinished": 0, "overdue": []}
+                if status != StandardDevTasksStatusEnum.CLOSE.value:
+                    groups[terminal]["unclosed"] += 1
                 if status != StandardDevTasksStatusEnum.FINISH.value and status != StandardDevTasksStatusEnum.CLOSE.value:
-                    groups[terminal]["UNRELEASE_RELEASED"] += 1
+                    groups[terminal]["unfinished"] += 1
                 if end_time and end_time < today:
-                    groups[terminal]["OVER"].append(await encrypt(task_id))
+                    groups[terminal]["overdue"].append(await encrypt(task_id))
             result: list = list(groups.values())
             return (StandardBusinessEnum.SUCCESS.value[0], "查询成功", result)
