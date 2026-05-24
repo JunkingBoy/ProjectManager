@@ -6,6 +6,9 @@ from contextlib import asynccontextmanager
 from sqlalchemy.ext.asyncio import AsyncEngine
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.exceptions import RequestValidationError
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse, JSONResponse
+import os
 
 from routers.Key import key
 from routers.User import user
@@ -65,6 +68,17 @@ async def lifespan(app: FastAPI):
         app.state.nosql_pool = nosql_pool
         # 创建下载文件存储目录
         create_dir('downloads')
+        # 如果存在 static 目录，挂载前端静态文件
+        _static_dir: str = os.path.join(os.path.dirname(os.path.abspath(__file__)), "static")
+        if os.path.isdir(_static_dir):
+            _assets_dir: str = os.path.join(_static_dir, "assets")
+            if os.path.isdir(_assets_dir):
+                app.mount("/assets", StaticFiles(directory=_assets_dir), name="assets")
+            _index_html: str = os.path.join(_static_dir, "index.html")
+            if os.path.isfile(_index_html):
+                @app.get("/{full_path:path}")
+                async def serve_frontend(full_path: str) -> FileResponse | JSONResponse:
+                    return FileResponse(_index_html) if os.path.isfile(_index_html) else JSONResponse(status_code=404, content={"detail": "Not Found"})
         yield
     except Exception as exc:
         e.error(str(exc))

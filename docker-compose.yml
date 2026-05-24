@@ -1,0 +1,12 @@
+services:
+  project-server:
+    build: .
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env.dev
+    volumes:
+      - ./db:/app/db
+      - ./logs:/app/logs
+      - ./downloads:/app/downloads
+      - ./nosql:/app/nosql

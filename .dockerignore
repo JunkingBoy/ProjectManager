@@ -1,0 +1,12 @@
+.venv
+.git
+__pycache__
+*.pyc
+tests/
+.env*
+logs/
+db/
+downloads/
+nosql/
+.DS_Store
+业务评估.md
