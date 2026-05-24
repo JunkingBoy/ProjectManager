@@ -65,3 +65,5 @@ class BugQuery(CoreModel):
     creator: str | None = None
     owner: str | None = None
     developer: str | None = None
+    filter_self_created: bool = False
+    filter_self_assigned: bool = False

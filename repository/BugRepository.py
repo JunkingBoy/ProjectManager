@@ -43,12 +43,18 @@ async def bug_list(
     decrypted_uid: str | None,
     decrypted_req_id: str | None,
     decrypted_owner: str | None,
-    status: int | None
+    status: int | None,
+    filter_self_created: bool = False,
+    filter_self_assigned: bool = False,
 ) -> list:
     e: ExceptionLog = ExceptionLog.get_instance()
     try:
         conditions: list = []
-        if decrypted_uid is not None:
+        if filter_self_created:
+            conditions.append(TbBugsPool.creator == decrypted_uid)  # type: ignore
+        elif filter_self_assigned:
+            conditions.append(TbBugsPool.owner == decrypted_uid)  # type: ignore
+        elif decrypted_uid is not None:
             conditions.append(
                 or_(TbBugsPool.creator == decrypted_uid, TbBugsPool.owner == decrypted_uid)  # type: ignore
             )
