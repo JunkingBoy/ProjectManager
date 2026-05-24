@@ -90,7 +90,7 @@ async def task_about_user_by_status_list(
     else:
         db_pool: StandardSQLiteDBConnectPool = r.app.state.db_pool
         async with db_pool.get_session() as session:
-            raw_data: list = await task_list(session, {"owner": decrypted_uid, "status": status}, order_by_column=TasksPool.end_time.desc())  # type: ignore
+            raw_data: list = await task_list(session, {"status": status}, order_by_column=TasksPool.end_time.desc())  # type: ignore
             result: list = []
             for item in raw_data:
                 d: dict = item.info

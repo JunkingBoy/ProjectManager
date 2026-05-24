@@ -1,7 +1,7 @@
 from datetime import datetime
 from sqlalchemy.sql import Select
 from sqlalchemy.engine import Result
-from sqlalchemy import select, and_, or_
+from sqlalchemy import select, and_, or_, func, case
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -9,8 +9,10 @@ from models.TbUser import User
 from utils.Logs import ExceptionLog
 from utils.Excptions import DivExcep
 from models.TbRequirements import Requirements
+from models.TbWork import TasksPool
+from models.TbBug import TbBugsPool
 from templates.StandardDBTemplate import TbRequirementsTemplate
-from enums.StandardBusEnum import StandardBusinessEnum, StandardReqStatusEnum
+from enums.StandardBusEnum import StandardBusinessEnum, StandardReqStatusEnum, StandardDevTasksStatusEnum, StandardBugStatusEnum
 from templates.StandardRepositoryTemplate import StandardRequirementsInfoTemplate, StandardRequirementsDetailTemplate, StandardRequirementsModifyTemplate, StandardRequirementsTasksInfoTemplate
 
 async def requirement_create(
@@ -86,6 +88,7 @@ async def requirement_list_info(
         )
         sql_res: Result = await session.execute(stmt)
         req_list = sql_res.scalars().all()
+        req_ids: list = [req.requirement_id for req in req_list if req.requirement_id]
         # 收集所有 person ID 并批量查询用户名
         person_ids: set = {req.person for req in req_list if req.person}
         if not person_ids: person_map = {}
@@ -95,9 +98,51 @@ async def requirement_list_info(
             )
             user_res: Result = await session.execute(user_stmt)
             person_map: dict = {row.uid: row.username for row in user_res}
-        result: list = [
-            StandardRequirementsInfoTemplate(
-                req_id=req.requirement_id,
+
+        # 批量查询任务统计 (total, done)
+        task_stats: dict = {}
+        if req_ids:
+            task_stmt: Select = select(TasksPool.requirement_id) # type: ignore
+            task_stmt = task_stmt.add_columns(
+                func.count(TasksPool.task_id), # type: ignore
+                func.sum(case((TasksPool.status == StandardDevTasksStatusEnum.CLOSE.value, 1), else_=0)) # type: ignore
+            ).where(
+                TasksPool.requirement_id.in_(req_ids)  # type: ignore
+            ).group_by(TasksPool.requirement_id)
+            for row in await session.execute(task_stmt):
+                task_stats[row[0]] = (row[1], row[2] or 0)
+        # 批量查询 Bug 统计 (total, done_with_task, business_done)
+        bug_stats: dict = {}
+        if req_ids:
+            bug_stmt: Select = select(TbBugsPool.requirement_id) # type: ignore
+            bug_stmt = bug_stmt.add_columns(
+                func.count(TbBugsPool.bug_id), # type: ignore
+                func.sum(case(
+                    (and_(
+                        TbBugsPool.status == StandardBugStatusEnum.CLOSE.value, # type: ignore
+                        TbBugsPool.task_id.isnot(None)  # type: ignore
+                    ), 1),
+                    else_=0
+                )),
+                func.sum(case(
+                    (and_(
+                        TbBugsPool.status == StandardBugStatusEnum.CLOSE.value, # type: ignore
+                        TbBugsPool.task_id.is_(None)  # type: ignore
+                    ), 1),
+                    else_=0
+                ))
+            ).where(
+                TbBugsPool.requirement_id.in_(req_ids)  # type: ignore
+            ).group_by(TbBugsPool.requirement_id)
+            for row in await session.execute(bug_stmt):
+                bug_stats[row[0]] = (row[1], row[2] or 0, row[3] or 0)
+        result: list = []
+        for req in req_list:
+            rid: str = req.requirement_id or ""
+            t_stats = task_stats.get(rid, (0, 0))
+            b_stats = bug_stats.get(rid, (0, 0, 0))
+            result.append(StandardRequirementsInfoTemplate(
+                req_id=rid,
                 number=req.number,
                 title=req.title,
                 status=req.status,
@@ -106,13 +151,12 @@ async def requirement_list_info(
                 person=person_map.get(req.person, req.person or ""),
                 related_doc=req.related_doc or "",
                 release_time=int(req.release_time.timestamp()) if req.release_time else 0,
-                req_dev_tasks_count=0,
-                req_dev_tasks_done_count=0,
-                req_bug_count=0,
-                req_bug_done_count=0,
-                req_business_bug_done_count=0,
-            ) for req in req_list
-        ]
+                req_dev_tasks_count=t_stats[0],
+                req_dev_tasks_done_count=t_stats[1],
+                req_bug_count=b_stats[0],
+                req_bug_done_count=b_stats[1],
+                req_business_bug_done_count=b_stats[2],
+            ))
         return result
     except SQLAlchemyError as sql_e:
         e.error(f"需求列表查询异常{sql_e}")

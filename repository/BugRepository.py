@@ -138,6 +138,42 @@ async def bug_detail(
             msg="Bug详情查询失败"
         )
 
+async def bug_count_by_req_id(
+    session: AsyncSession,
+    decrypted_req_id: str,
+    status: int | None = None,
+    have_task: bool | None = None
+) -> int:
+    """查询需求下 Bug 总数，支持按 status 和 have_task 过滤"""
+    if not decrypted_req_id: return 0
+    e: ExceptionLog = ExceptionLog.get_instance()
+    try:
+        conditions: list = [TbBugsPool.requirement_id == decrypted_req_id]  # type: ignore
+        if status is not None:
+            conditions.append(TbBugsPool.status == status)  # type: ignore
+        if have_task is True:
+            conditions.append(TbBugsPool.task_id.isnot(None))  # type: ignore
+        elif have_task is False:
+            conditions.append(TbBugsPool.task_id.is_(None))  # type: ignore
+        stmt: Select = select(func.count(TbBugsPool.bug_id)).where(  # type: ignore
+            and_(*conditions)
+        )
+        sql_res: Result = await session.execute(stmt)
+        return sql_res.scalar() or 0
+    except SQLAlchemyError as sql_e:
+        e.error(f"需求Bug数量查询异常{sql_e}")
+        raise DivExcep(
+            code=StandardBusinessEnum.FAIL.value[0],
+            msg="需求Bug数量查询异常"
+        )
+    except Exception as err:
+        e.error(f"需求Bug数量查询失败{err}")
+        raise DivExcep(
+            code=StandardBusinessEnum.FAIL.value[0],
+            msg="需求Bug数量查询失败"
+        )
+
+
 async def bug_count_by_task_id(
     session: AsyncSession,
     decrypted_task_id: str
