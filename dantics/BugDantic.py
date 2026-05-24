@@ -140,6 +140,17 @@ class BugCountGroupedQuery(CoreModel):
         if v not in (0, 1, 2): raise ValueError('非法task参数')
         return v
 
+
+class BugOpenListQuery(CoreModel):
+    model_config = ConfigDict(from_attributes=True, extra='forbid')
+
+    req_id: Annotated[str, Field(
+        ...,
+        min_length=1,
+        max_length=256,
+        description="需求ID加密值"
+    )]
+
 class BugStatusChange(CoreModel):
     model_config = ConfigDict(from_attributes=True)
 

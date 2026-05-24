@@ -218,6 +218,71 @@ async def bug_count_grouped_by_req_id(
         )
 
 
+async def bug_list_by_req_id_not_close(
+    session: AsyncSession,
+    decrypted_req_id: str
+) -> list:
+    """查询需求下所有 status != CLOSE 的 Bug，按关联任务 end_time DESC NULLS LAST 排序"""
+    if not decrypted_req_id: return []
+    e: ExceptionLog = ExceptionLog.get_instance()
+    from models.TbWork import TasksPool
+    from sqlalchemy import outerjoin
+    try:
+        stmt: Select = select(TbBugsPool).outerjoin(  # type: ignore
+            TasksPool, TbBugsPool.task_id == TasksPool.task_id  # type: ignore
+        ).where(
+            and_(
+                TbBugsPool.requirement_id == decrypted_req_id,  # type: ignore
+                TbBugsPool.status != StandardBugStatusEnum.CLOSE.value  # type: ignore
+            )
+        ).order_by(
+            TasksPool.end_time.desc().nullslast()  # type: ignore
+        )
+        sql_res: Result = await session.execute(stmt)
+        bug_list = sql_res.scalars().all()
+        uid_set: set = set()
+        for bug in bug_list:
+            if bug.creator: uid_set.add(bug.creator)
+            if bug.owner: uid_set.add(bug.owner)
+            if bug.developer: uid_set.add(bug.developer)
+        if not uid_set: user_map = {}
+        else:
+            user_stmt: Select = select(User.uid, User.username).where(  # type: ignore
+                User.uid.in_(uid_set)  # type: ignore
+            )
+            user_res: Result = await session.execute(user_stmt)
+            user_map: dict = {row.uid: row.username for row in user_res}
+        result: list = [
+            StandardBugListInfoTemplate(
+                bug_id=bug.bug_id,
+                req_id=bug.requirement_id,
+                task_id=bug.task_id or "",
+                title=bug.title,
+                desc=bug.description or "",
+                expected_res=bug.expected_res or "",
+                status=bug.status,
+                creator=user_map.get(bug.creator, bug.creator or ""),
+                owner=user_map.get(bug.owner, bug.owner or ""),
+                developer=user_map.get(bug.developer, bug.developer or ""),
+                c_time=int(bug.c_time.timestamp()) if bug.c_time else 0,
+                u_time=int(bug.u_time.timestamp()) if bug.u_time else 0,
+            ) for bug in bug_list
+        ]
+        return result
+    except SQLAlchemyError as sql_e:
+        e.error(f"Bug未关闭列表查询异常{sql_e}")
+        raise DivExcep(
+            code=StandardBusinessEnum.FAIL.value[0],
+            msg="Bug未关闭列表查询异常"
+        )
+    except Exception as err:
+        e.error(f"Bug未关闭列表查询失败{err}")
+        raise DivExcep(
+            code=StandardBusinessEnum.FAIL.value[0],
+            msg="Bug未关闭列表查询失败"
+        )
+
+
 async def bug_count_by_task_id(
     session: AsyncSession,
     decrypted_task_id: str

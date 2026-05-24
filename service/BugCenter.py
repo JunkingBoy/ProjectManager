@@ -4,13 +4,13 @@ from tools.Re import generate_uid
 from utils.Encry import decrypt, encrypt
 from utils.Pool import StandardSQLiteDBConnectPool
 from models.TbBug import TbBugsPool
-from repository.BugRepository import bug_create, bug_list as bug_list_repo, bug_detail as bug_detail_repo, bug_status_change as bug_status_change_repo, bug_open_count_by_task_id, bug_modify as bug_modify_repo, bug_count_grouped_by_req_id
+from repository.BugRepository import bug_create, bug_list as bug_list_repo, bug_detail as bug_detail_repo, bug_status_change as bug_status_change_repo, bug_open_count_by_task_id, bug_modify as bug_modify_repo, bug_count_grouped_by_req_id, bug_list_by_req_id_not_close
 from repository.UserRepository import user_map_by_uids
 from repository.TaskRepository import tasks_force_status_change, task_current_status
 from repository.RequirementRepository import requirement_status_to_test
 from templates.StandardDBTemplate import TbBugsPoolTemplate
 from enums.StandardBusEnum import StandardBusinessEnum, StandardBugStatusEnum, StandardDevTasksStatusEnum
-from dantics.BugDantic import BugAdd, BugQuery, BugFilterQuery, BugDetail, BugStatusChange, BugModify, BugCountGroupedQuery
+from dantics.BugDantic import BugAdd, BugQuery, BugFilterQuery, BugDetail, BugStatusChange, BugModify, BugCountGroupedQuery, BugOpenListQuery
 
 async def bug_add(
     r: Request,
@@ -172,6 +172,28 @@ async def bug_count_grouped(
         db_pool: StandardSQLiteDBConnectPool = r.app.state.db_pool
         async with db_pool.get_session() as session:
             result: dict = await bug_count_grouped_by_req_id(session, _decrypted_req_id, have_task=_have_task)
+            return (StandardBusinessEnum.SUCCESS.value[0], "查询成功", result)
+
+
+async def bug_list_open(
+    r: Request,
+    decrypted_uid: str,
+    data: BugOpenListQuery
+) -> tuple:
+    u_platform: Optional[str] = r.headers.get("sec-ch-ua-platform")
+    if not u_platform: return (StandardBusinessEnum.FAIL.value[0], "请求头校验失败")
+    else:
+        _decrypted_req_id: str = await decrypt(data.req_id)
+        db_pool: StandardSQLiteDBConnectPool = r.app.state.db_pool
+        async with db_pool.get_session() as session:
+            raw_data: list = await bug_list_by_req_id_not_close(session, _decrypted_req_id)
+            result: list = []
+            for item in raw_data:
+                d: dict = item.info
+                d["bug_id"] = await encrypt(item.bug_id) if item.bug_id else ""
+                d["req_id"] = await encrypt(item.req_id) if item.req_id else ""
+                d["task_id"] = await encrypt(item.task_id) if item.task_id else ""
+                result.append(d)
             return (StandardBusinessEnum.SUCCESS.value[0], "查询成功", result)
 
 
