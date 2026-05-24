@@ -200,6 +200,52 @@ async def bug_count_by_task_id(
             msg="Bug数量查询失败"
         )
 
+
+async def bug_modify(
+    session: AsyncSession,
+    decrypted_bug_id: str,
+    decrypted_uid: str,
+    title: str = "",
+    desc: str = "",
+    expected_res: str = "",
+    owner: str = "",
+    developer: str = "",
+) -> StandardBusinessEnum:
+    """修改 Bug 信息，校验 creator 或 owner"""
+    e: ExceptionLog = ExceptionLog.get_instance()
+    try:
+        stmt: Select = select(TbBugsPool).where(
+            TbBugsPool.bug_id == decrypted_bug_id  # type: ignore
+        )
+        sql_res: Result = await session.execute(stmt)
+        bug = sql_res.scalar_one_or_none()
+        if not bug: return StandardBusinessEnum.FAIL
+        if bug.creator != decrypted_uid and bug.owner != decrypted_uid:
+            return StandardBusinessEnum.FAIL
+        if title: bug.title = title
+        if desc: bug.description = desc
+        if expected_res: bug.expected_res = expected_res
+        if owner: bug.owner = owner
+        if developer: bug.developer = developer
+        bug.u_time = datetime.now()
+        await session.commit()
+        e.info(f"Bug信息修改成功: {decrypted_bug_id}")
+        return StandardBusinessEnum.SUCCESS
+    except SQLAlchemyError as sql_e:
+        await session.rollback()
+        e.error(f"Bug修改数据库异常{sql_e}")
+        raise DivExcep(
+            code=StandardBusinessEnum.FAIL.value[0],
+            msg="Bug修改数据库异常"
+        )
+    except Exception as err:
+        await session.rollback()
+        e.error(f"Bug修改失败{err}")
+        raise DivExcep(
+            code=StandardBusinessEnum.FAIL.value[0],
+            msg="Bug修改失败"
+        )
+
 async def bug_status_change(
     session: AsyncSession,
     decrypted_bug_id: str,

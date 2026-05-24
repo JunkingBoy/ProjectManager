@@ -85,6 +85,42 @@ class BugDetail(CoreModel):
         description="BugID加密值"
     )]
 
+class BugModify(CoreModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    bug_id: Annotated[str, Field(
+        ...,
+        min_length=1,
+        max_length=256,
+        description="BugID加密值"
+    )]
+    title: Annotated[str, Field(
+        "",
+        max_length=128,
+        description="Bug标题"
+    )]
+    desc: Annotated[str, Field(
+        "",
+        max_length=1024,
+        description="Bug描述"
+    )]
+    expected_res: Annotated[str, Field(
+        "",
+        max_length=1024,
+        description="预期结果"
+    )]
+    owner: Annotated[str, Field(
+        "",
+        max_length=256,
+        description="测试负责人ID加密值"
+    )]
+    developer: Annotated[str, Field(
+        "",
+        max_length=256,
+        description="关联开发ID加密值"
+    )]
+
+
 class BugStatusChange(CoreModel):
     model_config = ConfigDict(from_attributes=True)
 

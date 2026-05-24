@@ -4,13 +4,13 @@ from tools.Re import generate_uid
 from utils.Encry import decrypt, encrypt
 from utils.Pool import StandardSQLiteDBConnectPool
 from models.TbBug import TbBugsPool
-from repository.BugRepository import bug_create, bug_list as bug_list_repo, bug_detail as bug_detail_repo, bug_status_change as bug_status_change_repo, bug_open_count_by_task_id
+from repository.BugRepository import bug_create, bug_list as bug_list_repo, bug_detail as bug_detail_repo, bug_status_change as bug_status_change_repo, bug_open_count_by_task_id, bug_modify as bug_modify_repo
 from repository.UserRepository import user_map_by_uids
 from repository.TaskRepository import tasks_force_status_change, task_current_status
 from repository.RequirementRepository import requirement_status_to_test
 from templates.StandardDBTemplate import TbBugsPoolTemplate
 from enums.StandardBusEnum import StandardBusinessEnum, StandardBugStatusEnum, StandardDevTasksStatusEnum
-from dantics.BugDantic import BugAdd, BugQuery, BugFilterQuery, BugDetail, BugStatusChange
+from dantics.BugDantic import BugAdd, BugQuery, BugFilterQuery, BugDetail, BugStatusChange, BugModify
 
 async def bug_add(
     r: Request,
@@ -133,6 +133,31 @@ async def bug_detail(
                 "u_time": int(bug.u_time.timestamp()),
             }
             return (StandardBusinessEnum.SUCCESS.value[0], "查询成功", d)
+
+
+async def bug_modify(
+    r: Request,
+    decrypted_uid: str,
+    data: BugModify
+) -> tuple:
+    u_platform: Optional[str] = r.headers.get("sec-ch-ua-platform")
+    if not u_platform: return (StandardBusinessEnum.FAIL.value[0], "请求头校验失败")
+    else:
+        _decrypted_bug_id: str = await decrypt(data.bug_id)
+        _decrypted_owner: str = await decrypt(data.owner) if data.owner else ""
+        _decrypted_developer: str = await decrypt(data.developer) if data.developer else ""
+        db_pool: StandardSQLiteDBConnectPool = r.app.state.db_pool
+        async with db_pool.get_session() as session:
+            _res: StandardBusinessEnum = await bug_modify_repo(
+                session, _decrypted_bug_id, decrypted_uid,
+                title=data.title, desc=data.desc,
+                expected_res=data.expected_res,
+                owner=_decrypted_owner, developer=_decrypted_developer,
+            )
+            if _res != StandardBusinessEnum.SUCCESS:
+                return (StandardBusinessEnum.FAIL.value[0], "Bug不存在或无权限修改")
+            return (StandardBusinessEnum.SUCCESS.value[0], "Bug修改成功")
+
 
 async def bug_status_change(
     r: Request,
