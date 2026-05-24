@@ -139,3 +139,34 @@ class TaskTransferOwner(CoreModel):
         max_length=256,
         description="新负责人ID加密值"
     )]
+
+class TaskDescModify(CoreModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    task_id: Annotated[str, Field(
+        ...,
+        min_length=1,
+        max_length=256,
+        description="任务ID加密值"
+    )]
+    desc: Annotated[str, Field(
+        ...,
+        min_length=1,
+        max_length=256,
+        description="任务描述"
+    )]
+
+class TaskRemarkModify(CoreModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    task_id: Annotated[str, Field(
+        ...,
+        min_length=1,
+        max_length=256,
+        description="任务ID加密值"
+    )]
+    remark: Annotated[str, Field(
+        ...,
+        max_length=256,
+        description="任务备注"
+    )]

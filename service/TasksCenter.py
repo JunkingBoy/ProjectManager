@@ -7,8 +7,8 @@ from tools.Re import generate_uid
 from utils.Encry import decrypt, encrypt
 from utils.Pool import StandardSQLiteDBConnectPool
 from repository.UserRepository import user_repeat_normal
-from dantics.TasksDantic import TasksAdd, TaskStatusChange, TaskTransferOwner
-from repository.TaskRepository import tasks_create, task_list, tasks_status_change, tasks_transfer_owner
+from dantics.TasksDantic import TasksAdd, TaskStatusChange, TaskTransferOwner, TaskDescModify, TaskRemarkModify
+from repository.TaskRepository import tasks_create, task_list, tasks_status_change, tasks_transfer_owner, tasks_desc_modify, tasks_remark_modify
 from models.TbWork import TasksPool
 
 from templates.StandardDBTemplate import TbDevelopTasksPoolTmplate
@@ -131,3 +131,37 @@ async def task_transfer_owner(
             _res: StandardBusinessEnum = await tasks_transfer_owner(session, decrypted_uid, _decrypted_task_id, _decrypted_owner_id)
             if _res != StandardBusinessEnum.SUCCESS: return (StandardBusinessEnum.FAIL.value[0], "任务不存在或无权限转移")
             return (StandardBusinessEnum.SUCCESS.value[0], "任务负责人转移成功")
+
+async def task_desc_modify(
+    r: Request,
+    decrypted_uid: str,
+    model: TaskDescModify
+) -> tuple:
+    u_platform: Optional[str] = r.headers.get("sec-ch-ua-platform")
+    if not u_platform: return (StandardBusinessEnum.FAIL.value[0], "请求头校验失败")
+    else:
+        _decrypted_task_id: str = await decrypt(model.task_id)
+        db_pool: StandardSQLiteDBConnectPool = r.app.state.db_pool
+        async with db_pool.get_session() as session:
+            _is_normal: bool = await user_repeat_normal(session, decrypted_uid)
+            if not _is_normal: return (StandardBusinessEnum.FAIL.value[0], "用户状态异常")
+            _res: StandardBusinessEnum = await tasks_desc_modify(session, decrypted_uid, _decrypted_task_id, model.desc)
+            if _res != StandardBusinessEnum.SUCCESS: return (StandardBusinessEnum.FAIL.value[0], "任务不存在或无权修改描述")
+            return (StandardBusinessEnum.SUCCESS.value[0], "任务描述修改成功")
+
+async def task_remark_modify(
+    r: Request,
+    decrypted_uid: str,
+    model: TaskRemarkModify
+) -> tuple:
+    u_platform: Optional[str] = r.headers.get("sec-ch-ua-platform")
+    if not u_platform: return (StandardBusinessEnum.FAIL.value[0], "请求头校验失败")
+    else:
+        _decrypted_task_id: str = await decrypt(model.task_id)
+        db_pool: StandardSQLiteDBConnectPool = r.app.state.db_pool
+        async with db_pool.get_session() as session:
+            _is_normal: bool = await user_repeat_normal(session, decrypted_uid)
+            if not _is_normal: return (StandardBusinessEnum.FAIL.value[0], "用户状态异常")
+            _res: StandardBusinessEnum = await tasks_remark_modify(session, _decrypted_task_id, model.remark)
+            if _res != StandardBusinessEnum.SUCCESS: return (StandardBusinessEnum.FAIL.value[0], "任务不存在")
+            return (StandardBusinessEnum.SUCCESS.value[0], "任务备注修改成功")
