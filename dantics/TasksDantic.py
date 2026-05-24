@@ -170,3 +170,13 @@ class TaskRemarkModify(CoreModel):
         max_length=256,
         description="任务备注"
     )]
+
+class TaskDelete(CoreModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    task_id: Annotated[str, Field(
+        ...,
+        min_length=1,
+        max_length=256,
+        description="任务ID加密值"
+    )]

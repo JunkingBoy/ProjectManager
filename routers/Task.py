@@ -6,7 +6,7 @@ from fastapi.responses import JSONResponse
 from depends.Auth import authentication
 from enums.StandardBusEnum import StandardBusinessEnum
 from templates.StandardResTemplate import StandardResponse
-from dantics.TasksDantic import TasksAdd, RequirementTask, TaskStatusChange, TaskTransferOwner, TaskStatus, TaskDescModify, TaskRemarkModify
+from dantics.TasksDantic import TasksAdd, RequirementTask, TaskStatusChange, TaskTransferOwner, TaskStatus, TaskDescModify, TaskRemarkModify, TaskDelete
 from service.TasksCenter import (
     task_terminal_list,
     task_status_list,
@@ -17,6 +17,7 @@ from service.TasksCenter import (
     task_transfer_owner,
     task_desc_modify,
     task_remark_modify,
+    task_delete,
 )
 
 task: APIRouter = APIRouter(
@@ -151,4 +152,20 @@ async def modify_task_remark(
         mod_res: tuple = await task_remark_modify(r, success_auth[1], data)
         return JSONResponse(status_code=200, content=StandardResponse(
             code=mod_res[0], msg=mod_res[1], data=None, path=None
+        ).info)
+
+@task.delete("/del")
+async def delete_task(
+    r: Request,
+    data: TaskDelete = Depends(),
+    success_auth: tuple = Depends(authentication)
+) -> JSONResponse:
+    if success_auth[0] != StandardBusinessEnum.SUCCESS.value[0]:
+        return JSONResponse(status_code=200, content=StandardResponse(
+            code=success_auth[0], msg=success_auth[1], data=None, path=None
+        ).info)
+    else:
+        del_res: tuple = await task_delete(r, success_auth[1], data)
+        return JSONResponse(status_code=200, content=StandardResponse(
+            code=del_res[0], msg=del_res[1], data=None, path=None
         ).info)

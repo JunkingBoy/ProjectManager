@@ -13,6 +13,39 @@ from templates.StandardDBTemplate import TbDevelopTasksPoolTmplate
 from enums.StandardBusEnum import StandardBusinessEnum
 from templates.StandardRepositoryTemplate import StandardTasksListInfoTemplate
 
+async def tasks_delete(
+    session: AsyncSession,
+    decrypted_uid: str,
+    decrypted_task_id: str
+) -> StandardBusinessEnum:
+    e: ExceptionLog = ExceptionLog.get_instance()
+    try:
+        stmt: Select = select(TasksPool).where(
+            TasksPool.task_id == decrypted_task_id  # type: ignore
+        )
+        sql_res: Result = await session.execute(stmt)
+        task = sql_res.scalar_one_or_none()
+        if not task: return StandardBusinessEnum.FAIL
+        if task.creator != decrypted_uid: return StandardBusinessEnum.FAIL
+        await session.delete(task)
+        await session.commit()
+        e.info(f"任务删除成功: {decrypted_task_id}")
+        return StandardBusinessEnum.SUCCESS
+    except SQLAlchemyError as sql_e:
+        await session.rollback()
+        e.error(f"任务删除数据库异常{sql_e}")
+        raise DivExcep(
+            code=StandardBusinessEnum.FAIL.value[0],
+            msg="任务删除数据库异常"
+        )
+    except Exception as err:
+        await session.rollback()
+        e.error(f"任务删除失败{err}")
+        raise DivExcep(
+            code=StandardBusinessEnum.FAIL.value[0],
+            msg="任务删除失败"
+        )
+
 async def tasks_desc_modify(
     session: AsyncSession,
     decrypted_uid: str,
