@@ -223,6 +223,32 @@ async def user_all(
             msg="用户列表查询失败"
         )
 
+async def user_map_by_uids(
+    session: AsyncSession,
+    uid_set: set
+) -> dict:
+    """批量查询用户 uid -> username 映射"""
+    if not uid_set: return {}
+    e: ExceptionLog = ExceptionLog.get_instance()
+    try:
+        stmt: Select = select(User.uid, User.username).where(  # type: ignore
+            User.uid.in_(uid_set)  # type: ignore
+        )
+        sql_res: Result = await session.execute(stmt)
+        return {row.uid: row.username for row in sql_res}
+    except SQLAlchemyError as sql_e:
+        e.error(f"批量用户查询异常{sql_e}")
+        raise DivExcep(
+            code=StandardBusinessEnum.FAIL.value[0],
+            msg="批量用户查询异常"
+        )
+    except Exception as err:
+        e.error(f"批量用户查询失败{err}")
+        raise DivExcep(
+            code=StandardBusinessEnum.FAIL.value[0],
+            msg="批量用户查询失败"
+        )
+
 async def user_info(
     session: AsyncSession,
     decrypted_uid: str

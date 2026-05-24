@@ -9,7 +9,7 @@ from utils.Pool import StandardSQLiteDBConnectPool
 from repository.UserRepository import user_repeat_normal
 from dantics.TasksDantic import TasksAdd, TaskStatusChange, TaskTransferOwner, TaskDescModify, TaskRemarkModify, TaskDelete
 from repository.TaskRepository import tasks_create, task_list, tasks_status_change, tasks_transfer_owner, tasks_desc_modify, tasks_remark_modify, tasks_delete
-from repository.BugRepository import bug_distinct_task_ids
+from repository.BugRepository import bug_distinct_task_ids, bug_count_by_task_id
 from models.TbWork import TasksPool
 
 from templates.StandardDBTemplate import TbDevelopTasksPoolTmplate
@@ -111,6 +111,9 @@ async def task_status_change(
         async with db_pool.get_session() as session:
             _is_normal: bool = await user_repeat_normal(session, decrypted_uid)
             if not _is_normal: return (StandardBusinessEnum.FAIL.value[0], "用户状态异常")
+            if model.status == StandardDevTasksStatusEnum.CLOSE.value:
+                bug_count: int = await bug_count_by_task_id(session, _decrypted_task_id)
+                if bug_count > 0: return (StandardBusinessEnum.FAIL.value[0], "该任务下还有关联Bug未处理，无法关闭")
             _res: StandardBusinessEnum = await tasks_status_change(session, decrypted_uid, _decrypted_task_id, model.status)
             if _res != StandardBusinessEnum.SUCCESS: return (StandardBusinessEnum.FAIL.value[0], "任务不存在或无权限修改")
             return (StandardBusinessEnum.SUCCESS.value[0], "任务状态修改成功")

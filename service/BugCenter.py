@@ -1,14 +1,11 @@
 from typing import Optional
 from fastapi import Request
-from sqlalchemy import select
-from sqlalchemy.engine import Result
-
 from tools.Re import generate_uid
 from utils.Encry import decrypt, encrypt
 from utils.Pool import StandardSQLiteDBConnectPool
-from models.TbUser import User
 from models.TbBug import TbBugsPool
 from repository.BugRepository import bug_create, bug_list as bug_list_repo, bug_detail as bug_detail_repo
+from repository.UserRepository import user_map_by_uids
 from repository.TaskRepository import tasks_force_status_change
 from templates.StandardDBTemplate import TbBugsPoolTemplate
 from enums.StandardBusEnum import StandardBusinessEnum, StandardBugStatusEnum, StandardDevTasksStatusEnum
@@ -118,12 +115,7 @@ async def bug_detail(
                 return (StandardBusinessEnum.FAIL.value[0], "无权查看")
             # 查询用户姓名映射
             uid_set: set = {bug.creator, bug.owner, bug.developer} - {""}
-            if uid_set:
-                user_stmt = select(User.uid, User.username).where(User.uid.in_(uid_set))  # type: ignore
-                user_res: Result = await session.execute(user_stmt)
-                user_map: dict = {row.uid: row.username for row in user_res}
-            else:
-                user_map = {}
+            user_map: dict = await user_map_by_uids(session, uid_set)
             d: dict = {
                 "bug_id": await encrypt(bug.bug_id),
                 "req_id": await encrypt(bug.requirement_id),

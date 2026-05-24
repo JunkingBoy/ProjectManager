@@ -1,6 +1,6 @@
 from sqlalchemy.sql import Select
 from sqlalchemy.engine import Result
-from sqlalchemy import select, and_, or_
+from sqlalchemy import select, and_, or_, func
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -135,6 +135,32 @@ async def bug_detail(
         raise DivExcep(
             code=StandardBusinessEnum.FAIL.value[0],
             msg="Bug详情查询失败"
+        )
+
+async def bug_count_by_task_id(
+    session: AsyncSession,
+    decrypted_task_id: str
+) -> int:
+    """查询指定任务下关联的 Bug 数量"""
+    if not decrypted_task_id: return 0
+    e: ExceptionLog = ExceptionLog.get_instance()
+    try:
+        stmt: Select = select(func.count(TbBugsPool.bug_id)).where(  # type: ignore
+            TbBugsPool.task_id == decrypted_task_id  # type: ignore
+        )
+        sql_res: Result = await session.execute(stmt)
+        return sql_res.scalar() or 0
+    except SQLAlchemyError as sql_e:
+        e.error(f"Bug数量查询异常{sql_e}")
+        raise DivExcep(
+            code=StandardBusinessEnum.FAIL.value[0],
+            msg="Bug数量查询异常"
+        )
+    except Exception as err:
+        e.error(f"Bug数量查询失败{err}")
+        raise DivExcep(
+            code=StandardBusinessEnum.FAIL.value[0],
+            msg="Bug数量查询失败"
         )
 
 async def bug_distinct_task_ids(
