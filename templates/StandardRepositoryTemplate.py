@@ -35,6 +35,7 @@ class StandardRequirementsInfoTemplate:
     req_dev_tasks_done_count: int # 需求关联开发任务完成数
     req_bug_count: int # 需求关联bug总数
     req_bug_done_count: int # 需求关联bug完成数
+    req_business_bug_count: int # 需求关联业务bug总数
     req_business_bug_done_count: int # 需求关联业务bug完成数
 
     @property

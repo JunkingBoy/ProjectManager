@@ -130,17 +130,21 @@ async def requirement_list_info(
                         TbBugsPool.task_id.is_(None)  # type: ignore
                     ), 1),
                     else_=0
+                )),
+                func.sum(case(
+                    (TbBugsPool.task_id.is_(None), 1),  # type: ignore
+                    else_=0
                 ))
             ).where(
                 TbBugsPool.requirement_id.in_(req_ids)  # type: ignore
             ).group_by(TbBugsPool.requirement_id)
             for row in await session.execute(bug_stmt):
-                bug_stats[row[0]] = (row[1], row[2] or 0, row[3] or 0)
+                bug_stats[row[0]] = (row[1], row[2] or 0, row[3] or 0, row[4] or 0)
         result: list = []
         for req in req_list:
             rid: str = req.requirement_id or ""
             t_stats = task_stats.get(rid, (0, 0))
-            b_stats = bug_stats.get(rid, (0, 0, 0))
+            b_stats = bug_stats.get(rid, (0, 0, 0, 0))
             result.append(StandardRequirementsInfoTemplate(
                 req_id=rid,
                 number=req.number,
@@ -155,6 +159,7 @@ async def requirement_list_info(
                 req_dev_tasks_done_count=t_stats[1],
                 req_bug_count=b_stats[0],
                 req_bug_done_count=b_stats[1],
+                req_business_bug_count=b_stats[3],
                 req_business_bug_done_count=b_stats[2],
             ))
         return result
