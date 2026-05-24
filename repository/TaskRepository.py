@@ -367,3 +367,33 @@ async def task_open_count_by_req_id(
             code=StandardBusinessEnum.FAIL.value[0],
             msg="任务开放数量查询失败"
         )
+
+async def task_raw_list_by_req_id(
+    session: AsyncSession,
+    decrypted_req_id: str
+) -> list:
+    """查询需求下所有任务的(task_id, terminal, status, end_time)"""
+    e: ExceptionLog = ExceptionLog.get_instance()
+    try:
+        stmt: Select = select(
+            TasksPool.task_id,  # type: ignore
+            TasksPool.terminal,  # type: ignore
+            TasksPool.status,  # type: ignore
+            TasksPool.end_time  # type: ignore
+        ).where(
+            TasksPool.requirement_id == decrypted_req_id  # type: ignore
+        )
+        sql_res: Result = await session.execute(stmt)
+        return list(sql_res.all())
+    except SQLAlchemyError as sql_e:
+        e.error(f"任务原始列表查询异常{sql_e}")
+        raise DivExcep(
+            code=StandardBusinessEnum.FAIL.value[0],
+            msg="任务原始列表查询异常"
+        )
+    except Exception as err:
+        e.error(f"任务原始列表查询失败{err}")
+        raise DivExcep(
+            code=StandardBusinessEnum.FAIL.value[0],
+            msg="任务原始列表查询失败"
+        )

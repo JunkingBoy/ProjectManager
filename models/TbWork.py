@@ -121,7 +121,6 @@ class TasksPool(BaseModel):
         self.remark: str = data.remark
         self.end_time: datetime = data.end_time
 
-
 class TasksLog(BaseModel):
     __tablename__ = 'tasks_log'
 

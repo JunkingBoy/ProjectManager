@@ -19,6 +19,7 @@ from service.TasksCenter import (
     task_remark_modify,
     task_delete,
     task_bug_list,
+    task_statistics,
 )
 
 task: APIRouter = APIRouter(
@@ -181,6 +182,21 @@ async def get_task_bug_list(
             code=success_auth[0], msg=success_auth[1], data=None, path=None
         ).info)
     res: tuple = await task_bug_list(r, success_auth[1])
+    return JSONResponse(status_code=200, content=StandardResponse(
+        code=res[0], msg=res[1], data=res[2] if len(res) > 2 else None, path=None
+    ).info)
+
+@task.get("/statistics")
+async def get_task_statistics(
+    r: Request,
+    data: RequirementTask = Depends(),
+    success_auth: tuple = Depends(authentication)
+) -> JSONResponse:
+    if success_auth[0] != StandardBusinessEnum.SUCCESS.value[0]:
+        return JSONResponse(status_code=200, content=StandardResponse(
+            code=success_auth[0], msg=success_auth[1], data=None, path=None
+        ).info)
+    res: tuple = await task_statistics(r, success_auth[1], data)
     return JSONResponse(status_code=200, content=StandardResponse(
         code=res[0], msg=res[1], data=res[2] if len(res) > 2 else None, path=None
     ).info)

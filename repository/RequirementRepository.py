@@ -360,3 +360,29 @@ async def requirement_status_to_release(
             code=StandardBusinessEnum.FAIL.value[0],
             msg="需求状态变更失败"
         )
+
+async def requirement_person_by_id(
+    session: AsyncSession,
+    decrypted_req_id: str
+) -> str | None:
+    """查询需求的person字段"""
+    if not decrypted_req_id: return None
+    e: ExceptionLog = ExceptionLog.get_instance()
+    try:
+        stmt: Select = select(Requirements.person).where(  # type: ignore
+            Requirements.requirement_id == decrypted_req_id  # type: ignore
+        )
+        sql_res: Result = await session.execute(stmt)
+        return sql_res.scalar_one_or_none()
+    except SQLAlchemyError as sql_e:
+        e.error(f"需求处理人查询异常{sql_e}")
+        raise DivExcep(
+            code=StandardBusinessEnum.FAIL.value[0],
+            msg="需求处理人查询异常"
+        )
+    except Exception as err:
+        e.error(f"需求处理人查询失败{err}")
+        raise DivExcep(
+            code=StandardBusinessEnum.FAIL.value[0],
+            msg="需求处理人查询失败"
+        )
