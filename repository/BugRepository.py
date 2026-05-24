@@ -1,7 +1,7 @@
 from datetime import datetime
 from sqlalchemy.sql import Select
 from sqlalchemy.engine import Result
-from sqlalchemy import select, and_, or_, func
+from sqlalchemy import select, and_, or_, func, case
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 
