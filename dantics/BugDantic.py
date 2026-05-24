@@ -74,3 +74,13 @@ class BugFilterQuery(CoreModel):
     req_id: str | None = None
     task_id: str | None = None
     status: int | None = None
+
+class BugDetail(CoreModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    bug_id: Annotated[str, Field(
+        ...,
+        min_length=1,
+        max_length=256,
+        description="BugID加密值"
+    )]

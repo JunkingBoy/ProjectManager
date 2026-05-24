@@ -202,6 +202,40 @@ async def task_list(
             msg="任务列表查询失败"
         )
 
+async def tasks_force_status_change(
+    session: AsyncSession,
+    decrypted_task_id: str,
+    status: int
+) -> StandardBusinessEnum:
+    """直接更新任务状态，不校验权限"""
+    e: ExceptionLog = ExceptionLog.get_instance()
+    try:
+        stmt: Select = select(TasksPool).where(
+            TasksPool.task_id == decrypted_task_id  # type: ignore
+        )
+        sql_res: Result = await session.execute(stmt)
+        task = sql_res.scalar_one_or_none()
+        if not task: return StandardBusinessEnum.FAIL
+        task.status = status
+        task.u_time = datetime.now()
+        await session.commit()
+        e.info(f"任务状态强制修改成功: {decrypted_task_id}")
+        return StandardBusinessEnum.SUCCESS
+    except SQLAlchemyError as sql_e:
+        await session.rollback()
+        e.error(f"任务状态强制修改数据库异常{sql_e}")
+        raise DivExcep(
+            code=StandardBusinessEnum.FAIL.value[0],
+            msg="任务状态强制修改数据库异常"
+        )
+    except Exception as err:
+        await session.rollback()
+        e.error(f"任务状态强制修改失败{err}")
+        raise DivExcep(
+            code=StandardBusinessEnum.FAIL.value[0],
+            msg="任务状态强制修改失败"
+        )
+
 async def tasks_status_change(
     session: AsyncSession,
     decrypted_uid: str,

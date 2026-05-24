@@ -113,6 +113,30 @@ async def bug_list(
             msg="Bug列表查询失败"
         )
 
+async def bug_detail(
+    session: AsyncSession,
+    decrypted_bug_id: str
+) -> TbBugsPool | None:
+    e: ExceptionLog = ExceptionLog.get_instance()
+    try:
+        stmt: Select = select(TbBugsPool).where(
+            TbBugsPool.bug_id == decrypted_bug_id  # type: ignore
+        )
+        sql_res: Result = await session.execute(stmt)
+        return sql_res.scalar_one_or_none()
+    except SQLAlchemyError as sql_e:
+        e.error(f"Bug详情查询异常{sql_e}")
+        raise DivExcep(
+            code=StandardBusinessEnum.FAIL.value[0],
+            msg="Bug详情查询异常"
+        )
+    except Exception as err:
+        e.error(f"Bug详情查询失败{err}")
+        raise DivExcep(
+            code=StandardBusinessEnum.FAIL.value[0],
+            msg="Bug详情查询失败"
+        )
+
 async def bug_distinct_task_ids(
     session: AsyncSession,
     task_ids: list

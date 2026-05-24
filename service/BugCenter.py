@@ -1,13 +1,18 @@
 from typing import Optional
 from fastapi import Request
+from sqlalchemy import select
+from sqlalchemy.engine import Result
 
 from tools.Re import generate_uid
 from utils.Encry import decrypt, encrypt
 from utils.Pool import StandardSQLiteDBConnectPool
-from repository.BugRepository import bug_create, bug_list as bug_list_repo
+from models.TbUser import User
+from models.TbBug import TbBugsPool
+from repository.BugRepository import bug_create, bug_list as bug_list_repo, bug_detail as bug_detail_repo
+from repository.TaskRepository import tasks_force_status_change
 from templates.StandardDBTemplate import TbBugsPoolTemplate
-from enums.StandardBusEnum import StandardBusinessEnum, StandardBugStatusEnum
-from dantics.BugDantic import BugAdd, BugQuery, BugFilterQuery
+from enums.StandardBusEnum import StandardBusinessEnum, StandardBugStatusEnum, StandardDevTasksStatusEnum
+from dantics.BugDantic import BugAdd, BugQuery, BugFilterQuery, BugDetail
 
 async def bug_add(
     r: Request,
@@ -33,6 +38,8 @@ async def bug_add(
             )
             _res: StandardBusinessEnum = await bug_create(session, bug_template)
             if _res != StandardBusinessEnum.SUCCESS: return (StandardBusinessEnum.FAIL.value[0], "Bug创建失败")
+            if bug_template.task_id:
+                await tasks_force_status_change(session, bug_template.task_id, StandardDevTasksStatusEnum.BUG.value)
             return (StandardBusinessEnum.SUCCESS.value[0], "Bug创建成功")
 
 async def bug_list(
@@ -93,3 +100,42 @@ async def bug_filter_list(
                 d["task_id"] = await encrypt(item.task_id) if item.task_id else ""
                 result.append(d)
             return (StandardBusinessEnum.SUCCESS.value[0], "查询成功", result)
+
+async def bug_detail(
+    r: Request,
+    decrypted_uid: str,
+    data: BugDetail
+) -> tuple:
+    u_platform: Optional[str] = r.headers.get("sec-ch-ua-platform")
+    if not u_platform: return (StandardBusinessEnum.FAIL.value[0], "请求头校验失败")
+    else:
+        _decrypted_bug_id: str = await decrypt(data.bug_id)
+        db_pool: StandardSQLiteDBConnectPool = r.app.state.db_pool
+        async with db_pool.get_session() as session:
+            bug: TbBugsPool | None = await bug_detail_repo(session, _decrypted_bug_id)
+            if not bug: return (StandardBusinessEnum.FAIL.value[0], "Bug不存在")
+            if bug.creator != decrypted_uid and bug.developer != decrypted_uid:
+                return (StandardBusinessEnum.FAIL.value[0], "无权查看")
+            # 查询用户姓名映射
+            uid_set: set = {bug.creator, bug.owner, bug.developer} - {""}
+            if uid_set:
+                user_stmt = select(User.uid, User.username).where(User.uid.in_(uid_set))  # type: ignore
+                user_res: Result = await session.execute(user_stmt)
+                user_map: dict = {row.uid: row.username for row in user_res}
+            else:
+                user_map = {}
+            d: dict = {
+                "bug_id": await encrypt(bug.bug_id),
+                "req_id": await encrypt(bug.requirement_id),
+                "task_id": await encrypt(bug.task_id) if bug.task_id else "",
+                "title": bug.title,
+                "desc": bug.description or "",
+                "expected_res": bug.expected_res or "",
+                "status": bug.status,
+                "creator": user_map.get(bug.creator, bug.creator or ""),
+                "owner": user_map.get(bug.owner, bug.owner or ""),
+                "developer": user_map.get(bug.developer, bug.developer or ""),
+                "c_time": int(bug.c_time.timestamp()),
+                "u_time": int(bug.u_time.timestamp()),
+            }
+            return (StandardBusinessEnum.SUCCESS.value[0], "查询成功", d)
