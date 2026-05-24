@@ -314,6 +314,33 @@ async def tasks_transfer_owner(
             msg="任务负责人转移失败"
         )
 
+async def task_current_status(
+    session: AsyncSession,
+    decrypted_task_id: str
+) -> int | None:
+    """获取任务当前状态"""
+    if not decrypted_task_id: return None
+    e: ExceptionLog = ExceptionLog.get_instance()
+    try:
+        stmt: Select = select(TasksPool.status).where(  # type: ignore
+            TasksPool.task_id == decrypted_task_id  # type: ignore
+        )
+        sql_res: Result = await session.execute(stmt)
+        return sql_res.scalar_one_or_none()
+    except SQLAlchemyError as sql_e:
+        e.error(f"任务状态查询异常{sql_e}")
+        raise DivExcep(
+            code=StandardBusinessEnum.FAIL.value[0],
+            msg="任务状态查询异常"
+        )
+    except Exception as err:
+        e.error(f"任务状态查询失败{err}")
+        raise DivExcep(
+            code=StandardBusinessEnum.FAIL.value[0],
+            msg="任务状态查询失败"
+        )
+
+
 async def task_req_id(
     session: AsyncSession,
     decrypted_task_id: str

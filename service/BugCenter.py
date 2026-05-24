@@ -6,7 +6,7 @@ from utils.Pool import StandardSQLiteDBConnectPool
 from models.TbBug import TbBugsPool
 from repository.BugRepository import bug_create, bug_list as bug_list_repo, bug_detail as bug_detail_repo, bug_status_change as bug_status_change_repo, bug_open_count_by_task_id
 from repository.UserRepository import user_map_by_uids
-from repository.TaskRepository import tasks_force_status_change
+from repository.TaskRepository import tasks_force_status_change, task_current_status
 from repository.RequirementRepository import requirement_status_to_test
 from templates.StandardDBTemplate import TbBugsPoolTemplate
 from enums.StandardBusEnum import StandardBusinessEnum, StandardBugStatusEnum, StandardDevTasksStatusEnum
@@ -151,9 +151,16 @@ async def bug_status_change(
             if _res != StandardBusinessEnum.SUCCESS:
                 return (StandardBusinessEnum.FAIL.value[0], "Bug不存在或无权限修改")
             if _task_id:
-                open_count: int = await bug_open_count_by_task_id(session, _task_id)
-                if open_count == 0:
-                    await tasks_force_status_change(
-                        session, _task_id, StandardDevTasksStatusEnum.FINISH.value
-                    )
+                if model.status == StandardBugStatusEnum.CLOSE.value:
+                    open_count: int = await bug_open_count_by_task_id(session, _task_id)
+                    if open_count == 0:
+                        await tasks_force_status_change(
+                            session, _task_id, StandardDevTasksStatusEnum.FINISH.value
+                        )
+                elif model.status == StandardBugStatusEnum.UNFIX.value:
+                    current_status: int | None = await task_current_status(session, _task_id)
+                    if current_status is not None and current_status != StandardDevTasksStatusEnum.BUG.value:
+                        await tasks_force_status_change(
+                            session, _task_id, StandardDevTasksStatusEnum.BUG.value
+                        )
             return (StandardBusinessEnum.SUCCESS.value[0], "Bug状态修改成功")
