@@ -5,8 +5,8 @@ from fastapi.responses import JSONResponse
 from depends.Auth import authentication
 from enums.StandardBusEnum import StandardBusinessEnum
 from templates.StandardResTemplate import StandardResponse
-from dantics.BugDantic import BugAdd, BugQuery, BugFilterQuery, BugDetail
-from service.BugCenter import bug_add, bug_list, bug_filter_list, bug_detail as bug_detail_srv
+from dantics.BugDantic import BugAdd, BugQuery, BugFilterQuery, BugDetail, BugStatusChange
+from service.BugCenter import bug_add, bug_list, bug_filter_list, bug_detail as bug_detail_srv, bug_status_change as bug_status_change_srv
 
 bug: APIRouter = APIRouter(
     prefix="/bug",
@@ -72,4 +72,19 @@ async def get_bug_detail(
     res: tuple = await bug_detail_srv(r, success_auth[1], data)
     return JSONResponse(status_code=200, content=StandardResponse(
         code=res[0], msg=res[1], data=res[2] if len(res) > 2 else None, path=None
+    ).info)
+
+@bug.put("/status/change")
+async def change_bug_status(
+    r: Request,
+    data: BugStatusChange,
+    success_auth: tuple = Depends(authentication)
+) -> JSONResponse:
+    if success_auth[0] != StandardBusinessEnum.SUCCESS.value[0]:
+        return JSONResponse(status_code=200, content=StandardResponse(
+            code=success_auth[0], msg=success_auth[1], data=None, path=None
+        ).info)
+    res: tuple = await bug_status_change_srv(r, success_auth[1], data)
+    return JSONResponse(status_code=200, content=StandardResponse(
+        code=res[0], msg=res[1], data=None, path=None
     ).info)

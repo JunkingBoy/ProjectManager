@@ -84,3 +84,24 @@ class BugDetail(CoreModel):
         max_length=256,
         description="BugID加密值"
     )]
+
+class BugStatusChange(CoreModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    bug_id: Annotated[str, Field(
+        ...,
+        min_length=1,
+        max_length=256,
+        description="BugID加密值"
+    )]
+    status: Annotated[int, Field(
+        ...,
+        description="Bug状态,0.未修复1.已修复2.研发确认非Bug3.已关闭"
+    )]
+
+    @field_validator('status')
+    @classmethod
+    def validate_status(cls, v: int) -> int:
+        valid_values: set = {item.value for item in StandardBugStatusEnum}
+        if v not in valid_values: raise ValueError('非法Bug状态')
+        return v

@@ -1,3 +1,4 @@
+from datetime import datetime
 from sqlalchemy.sql import Select
 from sqlalchemy.engine import Result
 from sqlalchemy import select, and_, or_, func
@@ -10,7 +11,7 @@ from utils.Logs import ExceptionLog
 from utils.Excptions import DivExcep
 from templates.StandardDBTemplate import TbBugsPoolTemplate
 from templates.StandardRepositoryTemplate import StandardBugListInfoTemplate
-from enums.StandardBusEnum import StandardBusinessEnum
+from enums.StandardBusEnum import StandardBusinessEnum, StandardBugStatusEnum
 
 async def bug_create(
     session: AsyncSession,
@@ -161,6 +162,72 @@ async def bug_count_by_task_id(
         raise DivExcep(
             code=StandardBusinessEnum.FAIL.value[0],
             msg="Bug数量查询失败"
+        )
+
+async def bug_status_change(
+    session: AsyncSession,
+    decrypted_bug_id: str,
+    decrypted_uid: str,
+    new_status: int
+) -> tuple[StandardBusinessEnum, str]:
+    """变更Bug状态，校验owner，返回(结果, task_id)"""
+    e: ExceptionLog = ExceptionLog.get_instance()
+    try:
+        stmt: Select = select(TbBugsPool).where(
+            TbBugsPool.bug_id == decrypted_bug_id  # type: ignore
+        )
+        sql_res: Result = await session.execute(stmt)
+        bug = sql_res.scalar_one_or_none()
+        if not bug: return (StandardBusinessEnum.FAIL, "")
+        if bug.owner != decrypted_uid: return (StandardBusinessEnum.FAIL, "")
+        task_id: str = bug.task_id or ""
+        bug.status = new_status
+        bug.u_time = datetime.now()
+        await session.commit()
+        e.info(f"Bug状态修改成功: {decrypted_bug_id}")
+        return (StandardBusinessEnum.SUCCESS, task_id)
+    except SQLAlchemyError as sql_e:
+        await session.rollback()
+        e.error(f"Bug状态修改数据库异常{sql_e}")
+        raise DivExcep(
+            code=StandardBusinessEnum.FAIL.value[0],
+            msg="Bug状态修改数据库异常"
+        )
+    except Exception as err:
+        await session.rollback()
+        e.error(f"Bug状态修改失败{err}")
+        raise DivExcep(
+            code=StandardBusinessEnum.FAIL.value[0],
+            msg="Bug状态修改失败"
+        )
+
+async def bug_open_count_by_task_id(
+    session: AsyncSession,
+    decrypted_task_id: str
+) -> int:
+    """查询指定任务下状态为 UNFIX(0) 的 Bug 数量"""
+    if not decrypted_task_id: return 0
+    e: ExceptionLog = ExceptionLog.get_instance()
+    try:
+        stmt: Select = select(func.count(TbBugsPool.bug_id)).where(  # type: ignore
+            and_(
+                TbBugsPool.task_id == decrypted_task_id,  # type: ignore
+                TbBugsPool.status == StandardBugStatusEnum.UNFIX.value  # type: ignore
+            )
+        )
+        sql_res: Result = await session.execute(stmt)
+        return sql_res.scalar() or 0
+    except SQLAlchemyError as sql_e:
+        e.error(f"Bug开放数量查询异常{sql_e}")
+        raise DivExcep(
+            code=StandardBusinessEnum.FAIL.value[0],
+            msg="Bug开放数量查询异常"
+        )
+    except Exception as err:
+        e.error(f"Bug开放数量查询失败{err}")
+        raise DivExcep(
+            code=StandardBusinessEnum.FAIL.value[0],
+            msg="Bug开放数量查询失败"
         )
 
 async def bug_distinct_task_ids(
