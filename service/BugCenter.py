@@ -151,7 +151,7 @@ async def bug_status_change(
             if _res != StandardBusinessEnum.SUCCESS:
                 return (StandardBusinessEnum.FAIL.value[0], "Bug不存在或无权限修改")
             if _task_id:
-                if model.status == StandardBugStatusEnum.CLOSE.value:
+                if model.status in (StandardBugStatusEnum.CLOSE.value, StandardBugStatusEnum.FIX.value):
                     open_count: int = await bug_open_count_by_task_id(session, _task_id)
                     if open_count == 0:
                         await tasks_force_status_change(
