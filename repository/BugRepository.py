@@ -174,6 +174,50 @@ async def bug_count_by_req_id(
         )
 
 
+async def bug_count_grouped_by_req_id(
+    session: AsyncSession,
+    decrypted_req_id: str,
+    have_task: bool | None = None
+) -> dict:
+    """查询需求下按 status 分组的 Bug 计数，返回 {total, unfix, fix, nonbug, close}"""
+    if not decrypted_req_id: return {"total": 0, "unfix": 0, "fix": 0, "nonbug": 0, "close": 0}
+    e: ExceptionLog = ExceptionLog.get_instance()
+    try:
+        conditions: list = [TbBugsPool.requirement_id == decrypted_req_id]  # type: ignore
+        if have_task is True:
+            conditions.append(TbBugsPool.task_id.isnot(None))  # type: ignore
+        elif have_task is False:
+            conditions.append(TbBugsPool.task_id.is_(None))  # type: ignore
+        stmt: Select = select(
+            func.count(TbBugsPool.bug_id), # type: ignore
+            func.sum(case((TbBugsPool.status == StandardBugStatusEnum.UNFIX.value, 1), else_=0)), # type: ignore
+            func.sum(case((TbBugsPool.status == StandardBugStatusEnum.FIX.value, 1), else_=0)), # type: ignore
+            func.sum(case((TbBugsPool.status == StandardBugStatusEnum.NONBUG.value, 1), else_=0)), # type: ignore
+            func.sum(case((TbBugsPool.status == StandardBugStatusEnum.CLOSE.value, 1), else_=0)), # type: ignore
+        ).where(and_(*conditions))
+        sql_res: Result = await session.execute(stmt)
+        row = sql_res.one()
+        return {
+            "total": row[0] or 0,
+            "unfix": row[1] or 0,
+            "fix": row[2] or 0,
+            "nonbug": row[3] or 0,
+            "close": row[4] or 0,
+        }
+    except SQLAlchemyError as sql_e:
+        e.error(f"需求Bug分组统计查询异常{sql_e}")
+        raise DivExcep(
+            code=StandardBusinessEnum.FAIL.value[0],
+            msg="需求Bug分组统计查询异常"
+        )
+    except Exception as err:
+        e.error(f"需求Bug分组统计查询失败{err}")
+        raise DivExcep(
+            code=StandardBusinessEnum.FAIL.value[0],
+            msg="需求Bug分组统计查询失败"
+        )
+
+
 async def bug_count_by_task_id(
     session: AsyncSession,
     decrypted_task_id: str
@@ -199,7 +243,6 @@ async def bug_count_by_task_id(
             code=StandardBusinessEnum.FAIL.value[0],
             msg="Bug数量查询失败"
         )
-
 
 async def bug_modify(
     session: AsyncSession,

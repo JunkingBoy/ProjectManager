@@ -121,6 +121,27 @@ class BugModify(CoreModel):
     )]
 
 
+class BugCountGroupedQuery(CoreModel):
+    model_config = ConfigDict(from_attributes=True, extra='forbid')
+
+    req_id: Annotated[str, Field(
+        ...,
+        min_length=1,
+        max_length=256,
+        description="需求ID加密值"
+    )]
+    have_task: Annotated[int, Field(
+        ...,
+        description="关联任务过滤: 0=有任务 1=无任务 2=不限制"
+    )]
+
+    @field_validator('have_task')
+    @classmethod
+    def validate_have_task(cls, v: int) -> int:
+        if v not in (0, 1, 2): raise ValueError('have_task 只能为 0(有任务)、1(无任务)、2(不限制)')
+        return v
+
+
 class BugStatusChange(CoreModel):
     model_config = ConfigDict(from_attributes=True)
 
