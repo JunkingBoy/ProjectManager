@@ -10,7 +10,7 @@ from utils.Logs import ExceptionLog
 from utils.Excptions import DivExcep
 from models.TbWork import TasksPool
 from templates.StandardDBTemplate import TbDevelopTasksPoolTmplate
-from enums.StandardBusEnum import StandardBusinessEnum
+from enums.StandardBusEnum import StandardBusinessEnum, StandardDevTasksStatusEnum
 from templates.StandardRepositoryTemplate import StandardTasksListInfoTemplate
 
 async def tasks_delete(
@@ -293,6 +293,7 @@ async def tasks_transfer_owner(
         sql_res: Result = await session.execute(stmt)
         task = sql_res.scalar_one_or_none()
         if not task: return StandardBusinessEnum.FAIL
+        if task.status not in (StandardDevTasksStatusEnum.WAIT.value, StandardDevTasksStatusEnum.PROGRESS.value): return StandardBusinessEnum.FAIL
         task.owner = decrypted_owner_id
         task.u_time = datetime.now()
         await session.commit()

@@ -232,14 +232,18 @@ async def bug_open_count_by_task_id(
 
 async def bug_distinct_task_ids(
     session: AsyncSession,
-    task_ids: list
+    task_ids: list,
+    status: int | None = None
 ) -> set:
-    """批量查询哪些 task_id 存在关联的 Bug，返回有 Bug 的 task_id 集合"""
+    """批量查询哪些 task_id 存在关联的 Bug，可选按 status 过滤，返回有 Bug 的 task_id 集合"""
     if not task_ids: return set()
     e: ExceptionLog = ExceptionLog.get_instance()
     try:
+        conditions: list = [TbBugsPool.task_id.in_(task_ids)]  # type: ignore
+        if status is not None:
+            conditions.append(TbBugsPool.status == status)  # type: ignore
         stmt: Select = select(TbBugsPool.task_id).distinct().where(  # type: ignore
-            TbBugsPool.task_id.in_(task_ids)  # type: ignore
+            and_(*conditions)
         )
         sql_res: Result = await session.execute(stmt)
         return {row[0] for row in sql_res}

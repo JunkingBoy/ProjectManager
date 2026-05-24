@@ -13,7 +13,7 @@ from repository.BugRepository import bug_distinct_task_ids, bug_count_by_task_id
 from models.TbWork import TasksPool
 
 from templates.StandardDBTemplate import TbDevelopTasksPoolTmplate
-from enums.StandardBusEnum import StandardBusinessEnum, StandardTaskTerminalEnum, StandardDevTasksStatusEnum
+from enums.StandardBusEnum import StandardBusinessEnum, StandardTaskTerminalEnum, StandardDevTasksStatusEnum, StandardBugStatusEnum
 
 async def task_terminal_list(
     r: Request
@@ -201,7 +201,7 @@ async def task_bug_list(
             if not tasks: return (StandardBusinessEnum.SUCCESS.value[0], "查询成功", [])
             # 批量查哪些 task_id 有 Bug
             task_ids: list = [t.task_id for t in tasks if t.task_id]
-            bug_task_ids: set = await bug_distinct_task_ids(session, task_ids)
+            bug_task_ids: set = await bug_distinct_task_ids(session, task_ids, StandardBugStatusEnum.UNFIX.value)
             # 只返回有 Bug 的任务
             result: list = []
             for item in tasks:
