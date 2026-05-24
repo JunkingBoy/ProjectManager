@@ -120,7 +120,6 @@ class BugModify(CoreModel):
         description="关联开发ID加密值"
     )]
 
-
 class BugCountGroupedQuery(CoreModel):
     model_config = ConfigDict(from_attributes=True, extra='forbid')
 
@@ -138,9 +137,8 @@ class BugCountGroupedQuery(CoreModel):
     @field_validator('have_task')
     @classmethod
     def validate_have_task(cls, v: int) -> int:
-        if v not in (0, 1, 2): raise ValueError('have_task 只能为 0(有任务)、1(无任务)、2(不限制)')
+        if v not in (0, 1, 2): raise ValueError('非法task参数')
         return v
-
 
 class BugStatusChange(CoreModel):
     model_config = ConfigDict(from_attributes=True)
