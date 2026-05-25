@@ -53,6 +53,11 @@ async def login(
             data=log_res[2],
             path=None
         )
+        return JSONResponse(
+            status_code=200,
+            content=ret_res.info,
+            headers={"Accept-CH": "Sec-CH-UA-Platform"}
+        )
     else:
         ret_res: StandardResponse = StandardResponse(
             code=log_res[0],
@@ -60,10 +65,10 @@ async def login(
             data=None,
             path=None
         )
-    return JSONResponse(
-        status_code=200,
-        content=ret_res.info
-    )
+        return JSONResponse(
+            status_code=200,
+            content=ret_res.info
+        )
 
 @user.put("/mod")
 async def modify(

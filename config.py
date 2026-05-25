@@ -76,7 +76,7 @@ async def lifespan(app: FastAPI):
                 app.mount("/assets", StaticFiles(directory=_assets_dir), name="assets")
             _index_html: str = os.path.join(_static_dir, "index.html")
             if os.path.isfile(_index_html):
-                @app.get("/{full_path:path}")
+                @app.get("/{full_path:path}", response_model=None)
                 async def serve_frontend(full_path: str) -> FileResponse | JSONResponse:
                     return FileResponse(_index_html) if os.path.isfile(_index_html) else JSONResponse(status_code=404, content={"detail": "Not Found"})
         yield
